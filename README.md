@@ -102,7 +102,7 @@ This repo includes `.github/workflows/deploy.yml`. It builds the Vite app and pu
 
 For this repository:
 
-1. Push the `stable-tree` branch or `main` branch to GitHub.
+1. Push the `main` branch to GitHub.
 2. In GitHub, open `Settings` > `Pages`.
 3. Set `Source` to `GitHub Actions`.
 4. Run the `Deploy to GitHub Pages` workflow or push a new commit.
