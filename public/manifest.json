@@ -1,0 +1,14 @@
+{
+  "name": "Masum Ahmed Eesa Interactive Portfolio",
+  "short_name": "Masum Portfolio",
+  "icons": [
+    {
+      "src": "android-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#0f1713",
+  "background_color": "#08100d",
+  "display": "standalone"
+}

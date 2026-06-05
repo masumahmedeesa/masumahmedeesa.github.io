@@ -1,0 +1,384 @@
+export const sectionOrder = [
+  "name",
+  "objective",
+  "whoami",
+  "experience",
+  "education",
+  "skills",
+  "research",
+  "showcase",
+  "follow",
+  "contact",
+];
+
+export const treeNavItems = [
+  { id: "name", label: "Myself", position: [-0.98, 2.32, 0.2], tint: "#f4d35e" },
+  { id: "objective", label: "Objective", position: [1.28, 2.56, -0.45], tint: "#7bd389" },
+  { id: "whoami", label: "Who Am I", position: [-1.28, 1.1, -0.2], tint: "#70d6ff" },
+  { id: "experience", label: "Experience", position: [1.46, 1.18, 0.25], tint: "#ff9f6e" },
+  { id: "education", label: "Education", position: [-1.06, 0.08, 0.65], tint: "#c7f9cc" },
+  { id: "skills", label: "Skills", position: [1.08, 0.0, -0.55], tint: "#f497b6" },
+  { id: "research", label: "Research", position: [-0.42, 2.86, -0.55], tint: "#b8f2e6" },
+  { id: "showcase", label: "Projects", position: [0.66, 2.84, 0.55], tint: "#a0c4ff" },
+  { id: "follow", label: "Follow Me", position: [-1.42, 1.78, -0.72], tint: "#95d5b2" },
+  { id: "contact", label: "Contact", position: [1.66, 1.9, 0.65], tint: "#ffcad4" },
+];
+
+export const profile = {
+  name: "Masum Ahmed Eesa",
+  handle: "{ masum }",
+  title: "Full Stack Developer, CodexPro GmbH",
+  subtitle: "Former Software Engineer, Daniyal Technologies",
+  portrait: "/images/eesha.jpeg",
+  resume: "/resume.pdf",
+  email: "masumahmedeesha@gmail.com",
+  phone: "+(880) 1701062056",
+  location: "Motijheel C/A, Dhaka-1000",
+};
+
+export const socialLinks = [
+  { label: "Github", url: "https://github.com/masumahmedeesa" },
+  { label: "LinkedIn", url: "https://www.linkedin.com/in/masumahmedeesa" },
+  { label: "Facebook", url: "https://www.facebook.com/wreckagetune" },
+];
+
+export const objective = {
+  headline: "Build meaningful, community-minded software with frontier technologies.",
+  body: [
+    "My mission extends beyond code: I want to foster a community-driven approach that brings the benefits of technology to people of all ages.",
+    "I am excited about the potential of technology to bring about positive change, and I look forward to continuing this journey of innovation and community-building.",
+    "Get in touch and let's make something great together. Let's turn your idea on an even greater product.",
+  ],
+};
+
+export const whoAmI = {
+  headline: "I'm a Software Engineer interested in Frontier Technologies.",
+  paragraphs: [
+    "I am a passionate Software Engineer dedicated to crafting impactful open-source applications and leveraging technology to offer innovative solutions to contemporary challenges.",
+    "I take joy in working with cutting-edge technologies such as Nest.js, Next.js, React.js, Express.js, React Native, Laravel, and exploring the possibilities presented by Machine Learning.",
+    "My journey in the realm of software development is not just about coding; it's about creating meaningful solutions, building communities, and making a positive impact.",
+  ],
+};
+
+export const education = [
+  {
+    degree: "B.Sc. in Computer Science and Engineering",
+    institution: "Shahjalal University of Science and Technology, Sylhet",
+    period: "February 2017 to September 2021",
+    result: "CGPA: 3.63 / 4.00",
+  },
+];
+
+export const experiences = [
+  {
+    role: "Full Stack Developer",
+    type: "Part-time",
+    organization: "CodexPro GmbH",
+    location: "Berlin, Germany",
+    period: "January 2023 - July 2025",
+    summary: "Building scalable learning products and polished UI systems for CodexPro.",
+    bullets: [
+      "Collaborated with UX designers to build reusable, custom, and 3D UI components using raw CSS and Tailwind, enhancing the user interface of CodexPro.",
+      "Led development of a scalable Learning Management System (LMS) serving 2,000+ users.",
+      "Integrated Vimeo (Premium), PayPal, GeoLocation APIs, Webhooks, Mailgun, Mailchimp, and PushEngage for enhanced user experience.",
+      "Built a dynamic admin panel with features like attendance tracking, class video uploads, invoicing, SmartCalendar, and an Email & Notifications management system.",
+      "Co-architected backend infrastructure for maintainability and scalability.",
+      "Enabled data-driven learning through real-time analytics, personalized learning paths, and performance reporting for CodexPro.",
+      "Implemented SEO strategies to improve visibility and search rankings.",
+    ],
+    technologies: [
+      "Next.js",
+      "Nest.js",
+      "Swagger",
+      "Puppeteer",
+      "Tailwind",
+      "Prisma",
+      "d3.js",
+      "Pandas",
+      "Docker",
+      "CI/CD Tools",
+      "Adaptive Learning Systems",
+      "Vimeo",
+      "MongoDB",
+      "S3",
+      "CloudFront",
+      "DigitalOcean",
+      "Vercel",
+    ],
+    links: [{ label: "CodexPro", url: "https://codexpro.eu" }],
+  },
+  {
+    role: "Software Engineer (SDE-I)",
+    type: "Contract",
+    organization: "Daniyal Technologies",
+    location: "Dhaka, Bangladesh",
+    period: "July 2023 - October 2023",
+    summary: "Developed high-traffic commerce and digital transformation products.",
+    bullets: [
+      "Developed and optimized robust e-commerce platforms serving 50,000+ users, including Jars, Transaction Bee, Dispo, HYMAN, MacPharms, and HGSHYDR.",
+      "Contributed to digital transformation projects, including an appointment system for spas and clinics, and LA Insurance for the insurance sector.",
+      "Maintained clean, scalable code using modern stacks like Next.js App Router, Zustand, TanStack Query, Toastify, and Tailwind CSS.",
+      "Used Vue.js in admin panels to enhance interactivity and functionality.",
+      "Built scalable backend systems with NestJS, using MongoDB or MySQL based on project requirements.",
+      "Integrated advanced tools and services: Puppeteer, UPS API, Nodemailer with Mailgun (Handlebars), Swagger for API docs, and NMI Payment Gateway.",
+    ],
+    technologies: [
+      "Typescript",
+      "Next.js",
+      "Nest.js",
+      "Vue.js",
+      "Zustand",
+      "Tailwind",
+      "MongoDB",
+      "MySQL",
+      "DigitalOcean",
+      "Vercel",
+    ],
+    links: [
+      { label: "Jars", url: "https://jarscannabis.com/" },
+      { label: "Transaction Bee", url: "https://transactionbee.com/" },
+      { label: "Dispo", url: "https://disposhops.com/" },
+      { label: "HYMAN", url: "https://hymanfashion.com/" },
+      { label: "MacPharms", url: "https://macpharms.com/" },
+      { label: "HGSHYDR", url: "https://hgshydro.com/" },
+      { label: "LA Insurance", url: "https://lainsurance.com" },
+    ],
+  },
+  {
+    role: "Lecturer",
+    type: "Full-time",
+    organization: "Metropolitan University",
+    location: "Sylhet, Bangladesh",
+    period: "August 2021 - December 2022",
+    summary: "Taught core software engineering courses and mentored students.",
+    bullets: [
+      "Taught courses including Basic Competitive Programming, Database Management Systems, Software Engineering, Web Engineering, Computer Graphics, and Operating Systems.",
+      "Actively involved in co-curricular activities, including student mentoring, hackathons, and programming contests.",
+    ],
+    technologies: ["Outcome-Based Education", "Competitive Programming"],
+  },
+  {
+    role: "Junior Software Engineer",
+    type: "Part-time",
+    organization: "InnovexIT",
+    location: "Sylhet, Bangladesh",
+    period: "December 2020 - July 2021",
+    summary: "Built APIs, realtime features, and payments for Umediad.",
+    bullets: [
+      "Collaborated in designing a scalable database architecture and crafting REST APIs to serve a global user base exceeding 5,000 users for Umediad.",
+      "Implemented multi-language support, integrated Stripe for payment processing, leveraged Maps JavaScript API for location-based features, incorporated Google Translate API, enabled social logins (Google, Apple), and facilitated real-time communication among users through a robust chat system powered by Socket.IO.",
+    ],
+    technologies: ["Express.js", "React.js", "MongoDB", "Stripe", "VPS"],
+    links: [{ label: "Umediad", url: "https://umediad.com" }],
+  },
+];
+
+export const skillGroups = [
+  {
+    title: "Programming Languages",
+    level: 92,
+    items: ["Javascript (Fluent)", "Typescript (Fluent)", "Python (Fluent)", "C++ (Competent)", "PHP (Competent)"],
+  },
+  {
+    title: "Frameworks",
+    level: 90,
+    items: ["React.js", "Next.js", "Express.js", "Nest.js", "ReactNative", "Laravel"],
+  },
+  {
+    title: "Tools & Technologies",
+    level: 86,
+    items: ["Git", "MongoDB", "PayPal", "Vimeo", "Docker", "EC2", "DigitalOcean", "MySQL", "Linux", "MacOS", "LaTeX"],
+  },
+  {
+    title: "Competitive Programming",
+    level: 80,
+    items: ["Overall 350+ solutions in different Online Judges", "Handles: MasHum, EeSha"],
+    links: [
+      { label: "MasHum", url: "https://vjudge.net/user/MasHum" },
+      { label: "EeSha", url: "https://vjudge.net/user/EeSha" },
+    ],
+  },
+];
+
+export const research = [
+  {
+    title: "Linguistics Analysis of English ↔ Bangla Machine Translation",
+    period: "2020-2021",
+    description:
+      "An analysis of possible linguistics features for all available English ↔ Bangla parallel corpora using Statistical Machine Translation, state-of-the-art Neural Machine Translation, and a novel neural Lemmatizer to find errors in translating from Bangla to English and English to Bangla.",
+    technologies: ["Python", "TensorFlow", "SMT", "NMT"],
+    links: [{ label: "Linguistics Analysis Repo", url: "https://github.com/masumahmedeesha/Linguistics-Analysis" }],
+  },
+  {
+    title: "Image Caption Generator with CNN & LSTM",
+    period: "Deep learning project",
+    description: "A deep learning project using the Flickr8k dataset.",
+    technologies: ["Deep Learning", "CNN", "LSTM"],
+    image: "/images/portfolio/ml.png",
+    links: [
+      { label: "Github", url: "https://github.com/masumahmedeesa/Image-Caption-Generator" },
+      { label: "YouTube", url: "https://www.youtube.com/watch?v=yWAhC95n5RM" },
+    ],
+  },
+];
+
+export const projects = [
+  {
+    title: "CodexPro",
+    category: "Learn programming with fun for kids and teens",
+    image: "/images/portfolio/codexpro.jpg",
+    gallery: "/images/portfolio/gallery/codexpro.png",
+    url: "https://codexpro.eu",
+    description:
+      "A programming-learning platform supported by a scalable LMS, custom UI systems, analytics, and automated administrative workflows.",
+    bullets: [
+      "Collaborated with UX designers to create and implement reusable, custom, and 3D components using raw CSS and Tailwind, enhancing the user interface of CodexPro.",
+      "Spearheaded the development of a robust Learning Management System (LMS), catering to over 2,000 enrolled users.",
+      "Integrated Premium Vimeo, PayPal and GeoLocation APIs, Webhooks, Mailgun, Mailchimp, and PushEngage Notifications for a seamless user experience.",
+      "Developed a comprehensive admin panel overseeing 3,000+ users, featuring attendance and class video uploading, automated payment invoices, vouchers, SmartCalendar with daily activities, statistics, and email and notifications management.",
+    ],
+    technologies: ["Typescript", "Next.js", "Nest.js", "Puppeteer", "Zustand", "MongoDB", "AWS S3", "Vercel"],
+  },
+  {
+    title: "Umediad",
+    category: "Buy or Sell The Perfect Ad",
+    image: "/images/portfolio/umediad.jpg",
+    gallery: "/images/portfolio/gallery/umediad.png",
+    url: "https://umediad.com",
+    description: "A marketplace for advertising inventory with APIs, multilingual experiences, payments, maps, and realtime chat.",
+    bullets: [
+      "Collaborated in designing database architecture and developing 30+ REST APIs that target 5k+ users worldwide for Umediad.",
+      "Integrated multiple languages support, Stripe, Maps JavaScript API, Google Translate API, social logins (Google, Apple), and chat system among users using Socket.IO.",
+    ],
+    technologies: ["React.js", "Express.js", "MongoDB", "HostPapa VPS"],
+  },
+  {
+    title: "Mammuts",
+    category: "Online Diary",
+    image: "/images/portfolio/mammuts.jpg",
+    gallery: "/images/portfolio/gallery/mammuts.jpg",
+    url: "https://play.google.com/store/apps/details?id=com.mammuts",
+    description:
+      "A cross-platform social application built for an Italian client as a freelance developer.",
+    bullets: [
+      "Allows users to create a social profile, make friends, and share memories with photos and recordings in private or public mode.",
+      "Open source React Native codebase available on Github.",
+    ],
+    technologies: ["ReactNative", "Javascript", "PHP"],
+    links: [{ label: "Github", url: "https://www.github.com/masumahmedeesa/Mammuts-ReactNative" }],
+  },
+  {
+    title: "aaloi",
+    category: "Consultancy Hub and Commodity Suppliers' Locator",
+    image: "/images/portfolio/aaloi.jpg",
+    gallery: "/images/portfolio/gallery/aaloi.jpg",
+    url: "https://aaloi.com",
+    description:
+      "An initiative to combine Bangladeshi civil, architectural, and structural consultancy firms under one hub.",
+    bullets: [
+      "Provides consults as services to users and locates nearby suppliers of materials needed to build a house.",
+      "Open source Laravel and PHP codebase available on Github.",
+    ],
+    technologies: ["Laravel", "PHP"],
+    links: [{ label: "Github", url: "https://www.github.com/masumahmedeesa/aaloi" }],
+  },
+  {
+    title: "Image Caption Generator with CNN & LSTM",
+    category: "Deep learning project using the Flickr8k dataset",
+    image: "/images/portfolio/ml.png",
+    gallery: "/images/portfolio/gallery/ml.png",
+    url: "https://www.youtube.com/watch?v=yWAhC95n5RM",
+    description: "A machine learning project focused on generating natural-language captions from image features.",
+    bullets: ["Built around CNN and LSTM architecture for image-to-language generation.", "Open source implementation available on Github."],
+    technologies: ["Deep Learning", "CNN", "LSTM"],
+    links: [{ label: "Github", url: "https://github.com/masumahmedeesa/Image-Caption-Generator" }],
+  },
+];
+
+export const stats = [
+  { label: "Users served", value: "50k+" },
+  { label: "LMS learners", value: "2k+" },
+  { label: "REST APIs", value: "30+" },
+  { label: "OJ solutions", value: "350+" },
+];
+
+export const sections = {
+  name: {
+    id: "name",
+    title: "Myself",
+    eyebrow: profile.handle,
+    type: "name",
+  },
+  objective: {
+    id: "objective",
+    title: "Objective",
+    eyebrow: "Intent",
+    type: "objective",
+  },
+  whoami: {
+    id: "whoami",
+    title: "Who Am I",
+    eyebrow: "Profile",
+    type: "whoami",
+  },
+  experience: {
+    id: "experience",
+    title: "Experience",
+    eyebrow: "Timeline",
+    type: "experience",
+  },
+  education: {
+    id: "education",
+    title: "Education",
+    eyebrow: "Academic Root",
+    type: "education",
+  },
+  skills: {
+    id: "skills",
+    title: "Skills",
+    eyebrow: "Canopy",
+    type: "skills",
+  },
+  research: {
+    id: "research",
+    title: "Research",
+    eyebrow: "Inquiry",
+    type: "research",
+  },
+  showcase: {
+    id: "showcase",
+    title: "Projects",
+    eyebrow: "Selected Builds",
+    type: "showcase",
+  },
+  follow: {
+    id: "follow",
+    title: "Follow Me",
+    eyebrow: "Social",
+    type: "follow",
+  },
+  contact: {
+    id: "contact",
+    title: "Contact",
+    eyebrow: "Start Something",
+    type: "contact",
+  },
+};
+
+export const portfolioContent = {
+  sectionOrder,
+  treeNavItems,
+  profile,
+  socialLinks,
+  objective,
+  whoAmI,
+  education,
+  experiences,
+  skillGroups,
+  research,
+  projects,
+  stats,
+  sections,
+};
+
+export default portfolioContent;
