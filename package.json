@@ -7,7 +7,9 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "content:sync": "node scripts/export-content.mjs"
+    "content:sync": "node scripts/export-content.mjs",
+    "test:qa": "node scripts/qa-tests.mjs",
+    "test": "npm run test:qa && npm run build"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
