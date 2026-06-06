@@ -7,12 +7,20 @@ export default defineConfig({
   build: {
     target: "es2020",
     chunkSizeWarningLimit: 1400,
+    modulePreload: {
+      resolveDependencies(_filename, deps, { hostType }) {
+        if (hostType !== "html") return deps;
+
+        return deps.filter((dep) => !/\/?(three|motion|TreeExperience|ContentPanel|ContentManager)-/.test(dep));
+      },
+    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          motion: ["gsap"],
-          three: ["three", "@react-three/fiber", "@react-three/drei"],
-          icons: ["lucide-react"],
+        manualChunks(id) {
+          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom") || id.includes("node_modules/scheduler")) return "react";
+          if (id.includes("node_modules/gsap")) return "motion";
+          if (id.includes("node_modules/three") || id.includes("node_modules/@react-three")) return "three";
+          if (id.includes("node_modules/lucide-react")) return "icons";
         },
       },
     },
