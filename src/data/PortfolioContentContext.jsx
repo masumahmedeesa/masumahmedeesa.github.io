@@ -1,7 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { portfolioContent as fallbackContent } from "./portfolio.js";
 
-export const PORTFOLIO_STORAGE_KEY = "treePortfolio.content.v1";
 export const CONTENT_DATABASE_PATH = "content/portfolio-content.json";
 
 const PortfolioContentContext = createContext(null);
@@ -40,40 +39,28 @@ export function normalizePortfolioContent(content) {
     ? merged.treeNavItems.filter((item) => item?.id && Array.isArray(item.position) && item.position.length >= 3)
     : fallbackContent.treeNavItems;
 
+  const projects = Array.isArray(merged.projects)
+    ? merged.projects.map((project) => {
+        const { gallery, ...projectWithoutGallery } = isRecord(project) ? project : {};
+        return { linkLabel: "Project link", ...projectWithoutGallery };
+      })
+    : fallbackContent.projects;
+
   return {
     ...merged,
     sections,
     sectionOrder: sectionOrder.length ? sectionOrder : fallbackContent.sectionOrder,
     treeNavItems: treeNavItems.length ? treeNavItems : fallbackContent.treeNavItems,
+    projects,
   };
-}
-
-function readLocalDatabase() {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const stored = window.localStorage.getItem(PORTFOLIO_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
-  } catch (error) {
-    console.warn("Unable to read portfolio database from localStorage.", error);
-    return null;
-  }
-}
-
-function writeLocalDatabase(content) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(content));
-}
-
-function clearLocalDatabase() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(PORTFOLIO_STORAGE_KEY);
 }
 
 export function PortfolioContentProvider({ children }) {
   const [databaseContent, setDatabaseContent] = useState(() => normalizePortfolioContent(fallbackContent));
-  const [content, setContent] = useState(() => normalizePortfolioContent(readLocalDatabase() ?? fallbackContent));
-  const [source, setSource] = useState(() => (readLocalDatabase() ? "browser database" : "default module"));
+  const [content, setContent] = useState(() => normalizePortfolioContent(fallbackContent));
+  const [source, setSource] = useState("default module");
+  const [draftSavedAt, setDraftSavedAt] = useState(null);
+  const [hasPreviewDraft, setHasPreviewDraft] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -93,13 +80,14 @@ export function PortfolioContentProvider({ children }) {
         console.warn("Unable to load portfolio JSON database. Falling back to module content.", error);
       }
 
-      const localDatabase = readLocalDatabase();
-      const nextContent = normalizePortfolioContent(localDatabase ?? nextDatabase);
+      const nextContent = normalizePortfolioContent(nextDatabase);
 
       if (!mounted) return;
       setDatabaseContent(nextDatabase);
       setContent(nextContent);
-      setSource(localDatabase ? "browser database" : nextSource);
+      setSource(nextSource);
+      setDraftSavedAt(null);
+      setHasPreviewDraft(false);
       setReady(true);
     }
 
@@ -111,33 +99,45 @@ export function PortfolioContentProvider({ children }) {
   }, []);
 
   const updateContent = useCallback((nextContent) => {
+    if (typeof nextContent !== "function") {
+      const normalized = normalizePortfolioContent(nextContent);
+      setContent(normalized);
+      setSource("preview draft");
+      setDraftSavedAt(new Date().toISOString());
+      setHasPreviewDraft(true);
+      return;
+    }
+
     setContent((current) => {
-      const resolved = typeof nextContent === "function" ? nextContent(current) : nextContent;
+      const resolved = nextContent(current);
       const normalized = normalizePortfolioContent(resolved);
-      writeLocalDatabase(normalized);
-      setSource("browser database");
+      setSource("preview draft");
+      setDraftSavedAt(new Date().toISOString());
+      setHasPreviewDraft(true);
       return normalized;
     });
   }, []);
 
   const resetContent = useCallback(() => {
-    clearLocalDatabase();
     setContent(normalizePortfolioContent(databaseContent));
     setSource("json database");
+    setDraftSavedAt(null);
+    setHasPreviewDraft(false);
   }, [databaseContent]);
 
   const value = useMemo(
     () => ({
       content,
       databaseContent,
+      draftSavedAt,
+      hasPreviewDraft,
       ready,
       source,
-      storageKey: PORTFOLIO_STORAGE_KEY,
       databasePath: CONTENT_DATABASE_PATH,
       updateContent,
       resetContent,
     }),
-    [content, databaseContent, ready, resetContent, source, updateContent],
+    [content, databaseContent, draftSavedAt, hasPreviewDraft, ready, resetContent, source, updateContent],
   );
 
   return <PortfolioContentContext.Provider value={value}>{children}</PortfolioContentContext.Provider>;

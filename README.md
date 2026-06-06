@@ -36,7 +36,7 @@ npm run preview
 The site is static, so the CMS does not require a backend, server, or extra database package.
 
 - Main database file: `public/content/portfolio-content.json`
-- Browser draft storage: `localStorage` key `treePortfolio.content.v1`
+- Preview drafts: in-memory only; browser reload resets everything to the JSON database
 - Fallback source: `src/data/portfolio.js`
 - CMS route: `/#/admin`
 
@@ -44,11 +44,13 @@ How to make permanent content changes:
 
 1. Run the site locally with `npm run dev`.
 2. Open `/#/admin`.
-3. Edit profile, tree labels, projects, social links, or the full JSON.
-4. Click `Save Draft` to preview changes in the same browser.
-5. Click `Export JSON`.
+3. Edit profile, section titles, objective, experience, education, skills, research, projects, social links, media, resume, or the full JSON.
+4. Click `Save Draft` to preview changes before reloading.
+5. Before any reload, click `Export JSON` or `Copy JSON`.
 6. Replace `public/content/portfolio-content.json` with the exported file.
 7. Commit and push the change.
+
+Media fields accept local project paths, online URLs, or uploaded draft files. Uploaded photos and resumes are preview-only and reset on reload; for permanent use, add real assets to the repo or keep a permanent online URL in the exported JSON.
 
 To regenerate the starter JSON from `src/data/portfolio.js`:
 

@@ -189,11 +189,11 @@ function ShowcaseSection({ content }) {
   return (
     <div className="showcase-grid">
       {(projects ?? []).map((project) => {
-        const projectLinks = [...(project.url ? [{ label: "Project link", url: project.url }] : []), ...(project.links ?? [])];
+        const projectLinks = [...(project.url ? [{ label: project.linkLabel ?? "Project link", url: project.url }] : []), ...(project.links ?? [])];
 
         return (
           <article className="showcase-card" key={project.title} data-reveal>
-            <a href={assetUrl(project.gallery || project.image || project.url || "#")} target="_blank" rel="noreferrer" className="showcase-media">
+            <a href={assetUrl(project.url || project.image || "#")} target="_blank" rel="noreferrer" className="showcase-media">
               {project.image ? <img src={assetUrl(project.image)} alt={`${project.title} visual showcase`} loading="lazy" /> : <div className="paper-mark">PR</div>}
             </a>
             <div className="showcase-copy">
@@ -259,7 +259,7 @@ function ContactSection({ content }) {
       </div>
       <a href={assetUrl(profile.resume)} target="_blank" rel="noreferrer" data-reveal>
         <ArrowDownToLine size={18} />
-        <span>Download Resume</span>
+        <span>{profile.resumeLabel ?? "Download Resume"}</span>
       </a>
     </div>
   );

@@ -31,6 +31,8 @@ export const profile = {
   subtitle: "Former Software Engineer, Daniyal Technologies",
   portrait: "/images/eesha.jpeg",
   resume: "/resume.pdf",
+  resumeLabel: "Download Resume",
+  journeyLabel: "Professional Journey",
   email: "masumahmedeesha@gmail.com",
   phone: "+(880) 1701062056",
   location: "Motijheel C/A, Dhaka-1000",
@@ -227,8 +229,8 @@ export const projects = [
     title: "CodexPro",
     category: "Learn programming with fun for kids and teens",
     image: "/images/portfolio/codexpro.jpg",
-    gallery: "/images/portfolio/gallery/codexpro.png",
     url: "https://codexpro.eu",
+    linkLabel: "Project link",
     description:
       "A programming-learning platform supported by a scalable LMS, custom UI systems, analytics, and automated administrative workflows.",
     bullets: [
@@ -243,8 +245,8 @@ export const projects = [
     title: "Umediad",
     category: "Buy or Sell The Perfect Ad",
     image: "/images/portfolio/umediad.jpg",
-    gallery: "/images/portfolio/gallery/umediad.png",
     url: "https://umediad.com",
+    linkLabel: "Project link",
     description: "A marketplace for advertising inventory with APIs, multilingual experiences, payments, maps, and realtime chat.",
     bullets: [
       "Collaborated in designing database architecture and developing 30+ REST APIs that target 5k+ users worldwide for Umediad.",
@@ -256,8 +258,8 @@ export const projects = [
     title: "Mammuts",
     category: "Online Diary",
     image: "/images/portfolio/mammuts.jpg",
-    gallery: "/images/portfolio/gallery/mammuts.jpg",
     url: "https://play.google.com/store/apps/details?id=com.mammuts",
+    linkLabel: "Project link",
     description:
       "A cross-platform social application built for an Italian client as a freelance developer.",
     bullets: [
@@ -271,8 +273,8 @@ export const projects = [
     title: "aaloi",
     category: "Consultancy Hub and Commodity Suppliers' Locator",
     image: "/images/portfolio/aaloi.jpg",
-    gallery: "/images/portfolio/gallery/aaloi.jpg",
     url: "https://aaloi.com",
+    linkLabel: "Project link",
     description:
       "An initiative to combine Bangladeshi civil, architectural, and structural consultancy firms under one hub.",
     bullets: [
@@ -286,8 +288,8 @@ export const projects = [
     title: "Image Caption Generator with CNN & LSTM",
     category: "Deep learning project using the Flickr8k dataset",
     image: "/images/portfolio/ml.png",
-    gallery: "/images/portfolio/gallery/ml.png",
     url: "https://www.youtube.com/watch?v=yWAhC95n5RM",
+    linkLabel: "Project link",
     description: "A machine learning project focused on generating natural-language captions from image features.",
     bullets: ["Built around CNN and LSTM architecture for image-to-language generation.", "Open source implementation available on Github."],
     technologies: ["Deep Learning", "CNN", "LSTM"],

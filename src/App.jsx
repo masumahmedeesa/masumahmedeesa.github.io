@@ -122,7 +122,7 @@ export default function App() {
       <ContentPanel section={activeSection} activeId={activeId} onSelect={handleSelect} content={content} />
 
       <div className="ambient-copy chrome-reveal" aria-hidden="true">
-        <span>Professional Journey</span>
+        <span>{profile.journeyLabel ?? "Professional Journey"}</span>
         <strong>{activeSection?.title}</strong>
       </div>
     </main>
