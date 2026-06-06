@@ -299,9 +299,9 @@ export const projects = [
 
 export const stats = [
   { label: "Users served", value: "50k+" },
-  { label: "LMS learners", value: "2k+" },
-  { label: "REST APIs", value: "30+" },
-  { label: "OJ solutions", value: "350+" },
+  { label: "LMS learners", value: "5k+" },
+  { label: "REST APIs", value: "2k+" },
+  { label: "OJ solutions", value: "500+" },
 ];
 
 export const sections = {

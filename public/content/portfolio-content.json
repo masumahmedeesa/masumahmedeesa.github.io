@@ -526,15 +526,15 @@
     },
     {
       "label": "LMS learners",
-      "value": "2k+"
+      "value": "5k+"
     },
     {
       "label": "REST APIs",
-      "value": "30+"
+      "value": "2k+"
     },
     {
       "label": "OJ solutions",
-      "value": "350+"
+      "value": "500+"
     }
   ],
   "sections": {
