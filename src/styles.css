@@ -1233,6 +1233,70 @@ img {
   gap: 12px;
 }
 
+.cms-item-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  padding: 8px;
+  background:
+    linear-gradient(135deg, rgba(112, 214, 255, 0.08), transparent 48%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.cms-item-tabs.is-empty {
+  display: block;
+  color: rgba(245, 241, 232, 0.58);
+  font-size: 0.82rem;
+}
+
+.cms-item-tabs button {
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 42px;
+  gap: 7px;
+  padding: 0 10px;
+  color: rgba(245, 241, 232, 0.78);
+  background: rgba(255, 255, 255, 0.045);
+  cursor: grab;
+}
+
+.cms-item-tabs button:active {
+  cursor: grabbing;
+}
+
+.cms-item-tabs button svg {
+  min-width: 14px;
+  color: rgba(244, 211, 94, 0.74);
+}
+
+.cms-item-tabs button > span {
+  color: rgba(123, 211, 137, 0.82);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.cms-item-tabs button strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+
+.cms-item-tabs button.is-active {
+  color: #07110d;
+  border-color: rgba(123, 211, 137, 0.7);
+  background: linear-gradient(135deg, var(--green), var(--gold));
+  box-shadow: 0 10px 24px rgba(123, 211, 137, 0.14);
+}
+
+.cms-item-tabs button.is-active svg,
+.cms-item-tabs button.is-active > span {
+  color: rgba(7, 17, 13, 0.62);
+}
+
 .cms-palette-viewer {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
@@ -1696,6 +1760,10 @@ img {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-inline: -2px;
     padding: 7px;
+  }
+
+  .cms-item-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .cms-tabs button {

@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
-import { AlertTriangle, ArrowLeft, CheckCircle2, Copy, Database, Download, FileJson, Plus, RotateCcw, Save, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Copy, Database, Download, FileJson, GripVertical, Plus, RotateCcw, Save, Trash2, Upload } from "lucide-react";
 import { normalizePortfolioContent, usePortfolioContent } from "../data/PortfolioContentContext.jsx";
 import { hasDataUrls, validateUploadFile, validateUrl } from "../utils/contentSecurity.js";
 import { safeImageSrc, safeResumeHref } from "../utils/assets.js";
 import { preparePortfolioContent } from "../utils/portfolioContent.js";
+import { reorderItems } from "../utils/reorder.js";
 
 const stringify = (value) => JSON.stringify(value, null, 2);
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -320,11 +321,79 @@ function SectionCard({ title, onAdd, addLabel = "Add", tabId, activeTab, childre
   );
 }
 
+function SortableItemTabs({ collection, items = [], activeIndex, onActiveIndexChange, onReorder, getLabel, emptyLabel }) {
+  const list = Array.isArray(items) ? items : [];
+  const dragSourceRef = useRef(null);
+
+  if (!list.length) {
+    return (
+      <div className="cms-item-tabs is-empty">
+        <span>{emptyLabel}</span>
+      </div>
+    );
+  }
+
+  const safeActiveIndex = Math.min(Math.max(activeIndex ?? 0, 0), list.length - 1);
+
+  return (
+    <div className="cms-item-tabs" role="tablist" aria-label={`${collection} entries`}>
+      {list.map((item, index) => {
+        const label = getLabel(item, index) || `${collection} ${index + 1}`;
+        const isActive = safeActiveIndex === index;
+
+        return (
+          <button
+            key={`${collection}-${index}`}
+            type="button"
+            role="tab"
+            draggable
+            className={isActive ? "is-active" : ""}
+            aria-selected={isActive}
+            onClick={() => onActiveIndexChange(index)}
+            onDragStart={(event) => {
+              dragSourceRef.current = index;
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("text/plain", String(index));
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              const rawIndex = event.dataTransfer.getData("text/plain");
+              const fromIndex = Number(rawIndex || dragSourceRef.current);
+              dragSourceRef.current = null;
+              if (!Number.isInteger(fromIndex) || fromIndex === index) return;
+              onReorder(fromIndex, index);
+            }}
+            onDragEnd={() => {
+              dragSourceRef.current = null;
+            }}
+            title="Drag this tab to reorder"
+          >
+            <GripVertical size={14} aria-hidden="true" />
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{label}</strong>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ContentManager() {
   const { content, databasePath, draftSavedAt, hasPreviewDraft, resetContent, source, updateContent } = usePortfolioContent();
   const [draftContent, setDraftContent] = useState(() => normalizePortfolioContent(content));
   const [jsonDraft, setJsonDraft] = useState(() => stringify(normalizePortfolioContent(content)));
   const [activeTab, setActiveTab] = useState(editorTabs[0].id);
+  const [activeItemTabs, setActiveItemTabs] = useState({
+    experiences: 0,
+    education: 0,
+    skillGroups: 0,
+    research: 0,
+    projects: 0,
+  });
   const [dirty, setDirty] = useState(false);
   const [status, setStatus] = useState({ type: "info", text: "Ready" });
   const fileInputRef = useRef(null);
@@ -347,6 +416,25 @@ export default function ContentManager() {
     setDirty(false);
     setStatus({ type: "info", text: `Loaded from ${source}` });
   }, [content, source]);
+
+  useEffect(() => {
+    const collections = ["experiences", "education", "skillGroups", "research", "projects"];
+    setActiveItemTabs((current) => {
+      let changed = false;
+      const next = { ...current };
+
+      collections.forEach((collection) => {
+        const length = Array.isArray(draftContent[collection]) ? draftContent[collection].length : 0;
+        const safeIndex = length ? Math.min(Math.max(current[collection] ?? 0, 0), length - 1) : 0;
+        if (safeIndex !== current[collection]) {
+          next[collection] = safeIndex;
+          changed = true;
+        }
+      });
+
+      return changed ? next : current;
+    });
+  }, [draftContent]);
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -439,6 +527,35 @@ export default function ContentManager() {
     updateDraft((next) => {
       next[field] = value;
     }, message);
+  };
+
+  const setActiveItemTab = (collection, index) => {
+    setActiveItemTabs((current) => ({ ...current, [collection]: index }));
+  };
+
+  const addCollectionItem = (collection, item, message, placement = "end") => {
+    const currentList = Array.isArray(draftContent[collection]) ? draftContent[collection] : [];
+    const nextList = placement === "start" ? [item, ...currentList] : [...currentList, item];
+    const nextIndex = placement === "start" ? 0 : nextList.length - 1;
+
+    updateTopLevelList(collection, nextList, message);
+    setActiveItemTab(collection, nextIndex);
+  };
+
+  const removeCollectionItem = (collection, index, message) => {
+    const currentList = Array.isArray(draftContent[collection]) ? draftContent[collection] : [];
+    const nextList = currentList.filter((_, itemIndex) => itemIndex !== index);
+
+    updateTopLevelList(collection, nextList, message);
+    setActiveItemTab(collection, Math.min(index, Math.max(nextList.length - 1, 0)));
+  };
+
+  const reorderCollectionItems = (collection, fromIndex, toIndex, message) => {
+    const currentList = Array.isArray(draftContent[collection]) ? draftContent[collection] : [];
+    if (fromIndex < 0 || toIndex < 0 || fromIndex >= currentList.length || toIndex >= currentList.length) return;
+
+    updateTopLevelList(collection, reorderItems(currentList, fromIndex, toIndex), message);
+    setActiveItemTab(collection, toIndex);
   };
 
   const handleSave = () => {
@@ -689,7 +806,7 @@ export default function ContentManager() {
           <SectionCard title="Myself Metrics" tabId="myself-metrics" activeTab={activeTab} onAdd={() => updateTopLevelList("stats", [...(draftContent.stats ?? []), makeEmptyStat()], "Metric added")}>
             <div className="cms-list">
               {(draftContent.stats ?? []).map((stat, index) => (
-                <div className="cms-list-row" key={`${stat.label}-${index}`}>
+                <div className="cms-list-row" key={`metric-${index}`}>
                   <div className="cms-row-header">
                     <strong>{stat.label || `Metric ${index + 1}`}</strong>
                     <button type="button" onClick={() => updateTopLevelList("stats", draftContent.stats.filter((_, itemIndex) => itemIndex !== index), "Metric removed")} aria-label={`Remove ${stat.label}`}>
@@ -719,121 +836,216 @@ export default function ContentManager() {
             <TextListEditor label="Paragraphs" items={draftContent.whoAmI.paragraphs} onChange={(value) => updateTopLevelRecord("whoAmI", "paragraphs", value, "Who Am I paragraphs updated")} addLabel="Add paragraph" />
           </SectionCard>
 
-          <SectionCard title="Experience" tabId="experience" activeTab={activeTab} onAdd={() => updateTopLevelList("experiences", [...(draftContent.experiences ?? []), makeEmptyExperience()], "Experience added")}>
-            <div className="cms-list">
-              {(draftContent.experiences ?? []).map((job, index) => (
-                <div className="cms-list-row" key={`${job.role}-${index}`}>
-                  <div className="cms-row-header">
-                    <strong>{job.role || `Experience ${index + 1}`}</strong>
-                    <button type="button" onClick={() => updateTopLevelList("experiences", draftContent.experiences.filter((_, itemIndex) => itemIndex !== index), "Experience removed")} aria-label={`Remove ${job.role}`}>
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                  <div className="cms-field-grid">
-                    <Field label="Role" value={job.role} onChange={(value) => updateRecord("experiences", index, "role", value, "Experience updated")} />
-                    <Field label="Type" value={job.type} onChange={(value) => updateRecord("experiences", index, "type", value, "Experience updated")} />
-                    <Field label="Organization" value={job.organization} onChange={(value) => updateRecord("experiences", index, "organization", value, "Experience updated")} />
-                    <Field label="Location" value={job.location} onChange={(value) => updateRecord("experiences", index, "location", value, "Experience updated")} />
-                    <Field label="Period" value={job.period} onChange={(value) => updateRecord("experiences", index, "period", value, "Experience updated")} />
-                  </div>
-                  <Field label="Summary" value={job.summary} textarea onChange={(value) => updateRecord("experiences", index, "summary", value, "Experience updated")} />
-                  <TextListEditor label="Bullets" items={job.bullets} onChange={(value) => updateRecordList("experiences", index, "bullets", value, "Experience bullets updated")} addLabel="Add bullet" />
-                  <TextListEditor label="Technologies" items={job.technologies} onChange={(value) => updateRecordList("experiences", index, "technologies", value, "Experience technologies updated")} addLabel="Add technology" />
-                  <LinkListEditor label="Links" links={job.links} onChange={(value) => updateRecordList("experiences", index, "links", value, "Experience links updated")} />
-                </div>
-              ))}
-            </div>
+          <SectionCard title="Experience" tabId="experience" activeTab={activeTab} onAdd={() => addCollectionItem("experiences", makeEmptyExperience(), "Experience added")}>
+            {(() => {
+              const jobs = draftContent.experiences ?? [];
+              const activeIndex = Math.min(activeItemTabs.experiences ?? 0, Math.max(jobs.length - 1, 0));
+              const job = jobs[activeIndex];
+
+              return (
+                <>
+                  <SortableItemTabs
+                    collection="Experience"
+                    items={jobs}
+                    activeIndex={activeIndex}
+                    onActiveIndexChange={(index) => setActiveItemTab("experiences", index)}
+                    onReorder={(fromIndex, toIndex) => reorderCollectionItems("experiences", fromIndex, toIndex, "Experience reordered")}
+                    getLabel={(item, index) => item.role || `Experience ${index + 1}`}
+                    emptyLabel="No experience entries yet."
+                  />
+                  {job ? (
+                    <div className="cms-list">
+                      <div className="cms-list-row" key={`experience-editor-${activeIndex}`}>
+                        <div className="cms-row-header">
+                          <strong>{job.role || `Experience ${activeIndex + 1}`}</strong>
+                          <button type="button" onClick={() => removeCollectionItem("experiences", activeIndex, "Experience removed")} aria-label={`Remove ${job.role}`}>
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                        <div className="cms-field-grid">
+                          <Field label="Role" value={job.role} onChange={(value) => updateRecord("experiences", activeIndex, "role", value, "Experience updated")} />
+                          <Field label="Type" value={job.type} onChange={(value) => updateRecord("experiences", activeIndex, "type", value, "Experience updated")} />
+                          <Field label="Organization" value={job.organization} onChange={(value) => updateRecord("experiences", activeIndex, "organization", value, "Experience updated")} />
+                          <Field label="Location" value={job.location} onChange={(value) => updateRecord("experiences", activeIndex, "location", value, "Experience updated")} />
+                          <Field label="Period" value={job.period} onChange={(value) => updateRecord("experiences", activeIndex, "period", value, "Experience updated")} />
+                        </div>
+                        <Field label="Summary" value={job.summary} textarea onChange={(value) => updateRecord("experiences", activeIndex, "summary", value, "Experience updated")} />
+                        <TextListEditor label="Bullets" items={job.bullets} onChange={(value) => updateRecordList("experiences", activeIndex, "bullets", value, "Experience bullets updated")} addLabel="Add bullet" />
+                        <TextListEditor label="Technologies" items={job.technologies} onChange={(value) => updateRecordList("experiences", activeIndex, "technologies", value, "Experience technologies updated")} addLabel="Add technology" />
+                        <LinkListEditor label="Links" links={job.links} onChange={(value) => updateRecordList("experiences", activeIndex, "links", value, "Experience links updated")} />
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              );
+            })()}
           </SectionCard>
 
-          <SectionCard title="Education" tabId="education" activeTab={activeTab} onAdd={() => updateTopLevelList("education", [...(draftContent.education ?? []), makeEmptyEducation()], "Education added")}>
-            <div className="cms-list">
-              {(draftContent.education ?? []).map((item, index) => (
-                <div className="cms-list-row" key={`${item.degree}-${index}`}>
-                  <div className="cms-row-header">
-                    <strong>{item.degree || `Education ${index + 1}`}</strong>
-                    <button type="button" onClick={() => updateTopLevelList("education", draftContent.education.filter((_, itemIndex) => itemIndex !== index), "Education removed")} aria-label={`Remove ${item.degree}`}>
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                  <div className="cms-field-grid">
-                    <Field label="Degree" value={item.degree} onChange={(value) => updateRecord("education", index, "degree", value, "Education updated")} />
-                    <Field label="Institution" value={item.institution} onChange={(value) => updateRecord("education", index, "institution", value, "Education updated")} />
-                    <Field label="Period" value={item.period} onChange={(value) => updateRecord("education", index, "period", value, "Education updated")} />
-                    <Field label="Result" value={item.result} onChange={(value) => updateRecord("education", index, "result", value, "Education updated")} />
-                  </div>
-                </div>
-              ))}
-            </div>
+          <SectionCard title="Education" tabId="education" activeTab={activeTab} onAdd={() => addCollectionItem("education", makeEmptyEducation(), "Education added")}>
+            {(() => {
+              const educationItems = draftContent.education ?? [];
+              const activeIndex = Math.min(activeItemTabs.education ?? 0, Math.max(educationItems.length - 1, 0));
+              const item = educationItems[activeIndex];
+
+              return (
+                <>
+                  <SortableItemTabs
+                    collection="Education"
+                    items={educationItems}
+                    activeIndex={activeIndex}
+                    onActiveIndexChange={(index) => setActiveItemTab("education", index)}
+                    onReorder={(fromIndex, toIndex) => reorderCollectionItems("education", fromIndex, toIndex, "Education reordered")}
+                    getLabel={(entry, index) => entry.degree || `Education ${index + 1}`}
+                    emptyLabel="No education entries yet."
+                  />
+                  {item ? (
+                    <div className="cms-list">
+                      <div className="cms-list-row" key={`education-editor-${activeIndex}`}>
+                        <div className="cms-row-header">
+                          <strong>{item.degree || `Education ${activeIndex + 1}`}</strong>
+                          <button type="button" onClick={() => removeCollectionItem("education", activeIndex, "Education removed")} aria-label={`Remove ${item.degree}`}>
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                        <div className="cms-field-grid">
+                          <Field label="Degree" value={item.degree} onChange={(value) => updateRecord("education", activeIndex, "degree", value, "Education updated")} />
+                          <Field label="Institution" value={item.institution} onChange={(value) => updateRecord("education", activeIndex, "institution", value, "Education updated")} />
+                          <Field label="Period" value={item.period} onChange={(value) => updateRecord("education", activeIndex, "period", value, "Education updated")} />
+                          <Field label="Result" value={item.result} onChange={(value) => updateRecord("education", activeIndex, "result", value, "Education updated")} />
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              );
+            })()}
           </SectionCard>
 
-          <SectionCard title="Skills" tabId="skills" activeTab={activeTab} onAdd={() => updateTopLevelList("skillGroups", [...(draftContent.skillGroups ?? []), makeEmptySkillGroup()], "Skill group added")}>
-            <div className="cms-list">
-              {(draftContent.skillGroups ?? []).map((group, index) => (
-                <div className="cms-list-row" key={`${group.title}-${index}`}>
-                  <div className="cms-row-header">
-                    <strong>{group.title || `Skill Group ${index + 1}`}</strong>
-                    <button type="button" onClick={() => updateTopLevelList("skillGroups", draftContent.skillGroups.filter((_, itemIndex) => itemIndex !== index), "Skill group removed")} aria-label={`Remove ${group.title}`}>
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                  <div className="cms-field-grid">
-                    <Field label="Title" value={group.title} onChange={(value) => updateRecord("skillGroups", index, "title", value, "Skill group updated")} />
-                    <Field label="Level" value={group.level} type="number" min="0" max="100" onChange={(value) => updateRecord("skillGroups", index, "level", value, "Skill group updated")} />
-                  </div>
-                  <TextListEditor label="Skills" items={group.items} onChange={(value) => updateRecordList("skillGroups", index, "items", value, "Skills updated")} addLabel="Add skill" />
-                  <LinkListEditor label="Links" links={group.links} onChange={(value) => updateRecordList("skillGroups", index, "links", value, "Skill links updated")} />
-                </div>
-              ))}
-            </div>
+          <SectionCard title="Skills" tabId="skills" activeTab={activeTab} onAdd={() => addCollectionItem("skillGroups", makeEmptySkillGroup(), "Skill group added")}>
+            {(() => {
+              const skillGroups = draftContent.skillGroups ?? [];
+              const activeIndex = Math.min(activeItemTabs.skillGroups ?? 0, Math.max(skillGroups.length - 1, 0));
+              const group = skillGroups[activeIndex];
+
+              return (
+                <>
+                  <SortableItemTabs
+                    collection="Skills"
+                    items={skillGroups}
+                    activeIndex={activeIndex}
+                    onActiveIndexChange={(index) => setActiveItemTab("skillGroups", index)}
+                    onReorder={(fromIndex, toIndex) => reorderCollectionItems("skillGroups", fromIndex, toIndex, "Skill groups reordered")}
+                    getLabel={(entry, index) => entry.title || `Skill Group ${index + 1}`}
+                    emptyLabel="No skill groups yet."
+                  />
+                  {group ? (
+                    <div className="cms-list">
+                      <div className="cms-list-row" key={`skills-editor-${activeIndex}`}>
+                        <div className="cms-row-header">
+                          <strong>{group.title || `Skill Group ${activeIndex + 1}`}</strong>
+                          <button type="button" onClick={() => removeCollectionItem("skillGroups", activeIndex, "Skill group removed")} aria-label={`Remove ${group.title}`}>
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                        <div className="cms-field-grid">
+                          <Field label="Title" value={group.title} onChange={(value) => updateRecord("skillGroups", activeIndex, "title", value, "Skill group updated")} />
+                          <Field label="Level" value={group.level} type="number" min="0" max="100" onChange={(value) => updateRecord("skillGroups", activeIndex, "level", value, "Skill group updated")} />
+                        </div>
+                        <TextListEditor label="Skills" items={group.items} onChange={(value) => updateRecordList("skillGroups", activeIndex, "items", value, "Skills updated")} addLabel="Add skill" />
+                        <LinkListEditor label="Links" links={group.links} onChange={(value) => updateRecordList("skillGroups", activeIndex, "links", value, "Skill links updated")} />
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              );
+            })()}
           </SectionCard>
 
-          <SectionCard title="Research" tabId="research" activeTab={activeTab} onAdd={() => updateTopLevelList("research", [...(draftContent.research ?? []), makeEmptyResearch()], "Research added")}>
-            <div className="cms-list">
-              {(draftContent.research ?? []).map((item, index) => (
-                <div className="cms-list-row" key={`${item.title}-${index}`}>
-                  <div className="cms-row-header">
-                    <strong>{item.title || `Research ${index + 1}`}</strong>
-                    <button type="button" onClick={() => updateTopLevelList("research", draftContent.research.filter((_, itemIndex) => itemIndex !== index), "Research removed")} aria-label={`Remove ${item.title}`}>
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                  <div className="cms-field-grid">
-                    <Field label="Title" value={item.title} onChange={(value) => updateRecord("research", index, "title", value, "Research updated")} />
-                    <Field label="Period" value={item.period} onChange={(value) => updateRecord("research", index, "period", value, "Research updated")} />
-                  </div>
-                  <Field label="Description" value={item.description} textarea onChange={(value) => updateRecord("research", index, "description", value, "Research updated")} />
-                  <TextListEditor label="Technologies" items={item.technologies} onChange={(value) => updateRecordList("research", index, "technologies", value, "Research technologies updated")} addLabel="Add technology" />
-                  <LinkListEditor label="Links" links={item.links} onChange={(value) => updateRecordList("research", index, "links", value, "Research links updated")} />
-                  <AssetField label="Research image URL (online image URL allowed)" value={item.image} onChange={(value) => updateRecord("research", index, "image", value, "Research image updated")} onStatus={setStatus} />
-                </div>
-              ))}
-            </div>
+          <SectionCard title="Research" tabId="research" activeTab={activeTab} onAdd={() => addCollectionItem("research", makeEmptyResearch(), "Research added")}>
+            {(() => {
+              const researchItems = draftContent.research ?? [];
+              const activeIndex = Math.min(activeItemTabs.research ?? 0, Math.max(researchItems.length - 1, 0));
+              const item = researchItems[activeIndex];
+
+              return (
+                <>
+                  <SortableItemTabs
+                    collection="Research"
+                    items={researchItems}
+                    activeIndex={activeIndex}
+                    onActiveIndexChange={(index) => setActiveItemTab("research", index)}
+                    onReorder={(fromIndex, toIndex) => reorderCollectionItems("research", fromIndex, toIndex, "Research reordered")}
+                    getLabel={(entry, index) => entry.title || `Research ${index + 1}`}
+                    emptyLabel="No research entries yet."
+                  />
+                  {item ? (
+                    <div className="cms-list">
+                      <div className="cms-list-row" key={`research-editor-${activeIndex}`}>
+                        <div className="cms-row-header">
+                          <strong>{item.title || `Research ${activeIndex + 1}`}</strong>
+                          <button type="button" onClick={() => removeCollectionItem("research", activeIndex, "Research removed")} aria-label={`Remove ${item.title}`}>
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                        <div className="cms-field-grid">
+                          <Field label="Title" value={item.title} onChange={(value) => updateRecord("research", activeIndex, "title", value, "Research updated")} />
+                          <Field label="Period" value={item.period} onChange={(value) => updateRecord("research", activeIndex, "period", value, "Research updated")} />
+                        </div>
+                        <Field label="Description" value={item.description} textarea onChange={(value) => updateRecord("research", activeIndex, "description", value, "Research updated")} />
+                        <TextListEditor label="Technologies" items={item.technologies} onChange={(value) => updateRecordList("research", activeIndex, "technologies", value, "Research technologies updated")} addLabel="Add technology" />
+                        <LinkListEditor label="Links" links={item.links} onChange={(value) => updateRecordList("research", activeIndex, "links", value, "Research links updated")} />
+                        <AssetField label="Research image URL (online image URL allowed)" value={item.image} onChange={(value) => updateRecord("research", activeIndex, "image", value, "Research image updated")} onStatus={setStatus} />
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              );
+            })()}
           </SectionCard>
 
-          <SectionCard title="Projects" tabId="projects" activeTab={activeTab} onAdd={() => updateTopLevelList("projects", [makeEmptyProject(), ...(draftContent.projects ?? [])], "Project added")}>
-            <div className="cms-list">
-              {(draftContent.projects ?? []).map((project, index) => (
-                <div className="cms-list-row" key={`${project.title}-${index}`}>
-                  <div className="cms-row-header">
-                    <strong>{project.title || `Project ${index + 1}`}</strong>
-                    <button type="button" onClick={() => updateTopLevelList("projects", draftContent.projects.filter((_, itemIndex) => itemIndex !== index), "Project removed")} aria-label={`Remove ${project.title}`}>
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                  <div className="cms-field-grid">
-                    <Field label="Title" value={project.title} onChange={(value) => updateRecord("projects", index, "title", value, "Project updated")} />
-                    <Field label="Category" value={project.category} onChange={(value) => updateRecord("projects", index, "category", value, "Project updated")} />
-                    <Field label="URL" value={project.url} onChange={(value) => updateRecord("projects", index, "url", value, "Project updated")} />
-                    <Field label="URL label" value={project.linkLabel ?? "Project link"} onChange={(value) => updateRecord("projects", index, "linkLabel", value, "Project updated")} />
-                  </div>
-                  <Field label="Description" value={project.description} textarea onChange={(value) => updateRecord("projects", index, "description", value, "Project updated")} />
-                  <TextListEditor label="Bullets" items={project.bullets} onChange={(value) => updateRecordList("projects", index, "bullets", value, "Project bullets updated")} addLabel="Add bullet" />
-                  <TextListEditor label="Technologies" items={project.technologies} onChange={(value) => updateRecordList("projects", index, "technologies", value, "Project technologies updated")} addLabel="Add technology" />
-                  <LinkListEditor label="Links" links={project.links} onChange={(value) => updateRecordList("projects", index, "links", value, "Project links updated")} />
-                  <AssetField label="Project image URL (online image URL allowed)" value={project.image} onChange={(value) => updateRecord("projects", index, "image", value, "Project image updated")} onStatus={setStatus} />
-                </div>
-              ))}
-            </div>
+          <SectionCard title="Projects" tabId="projects" activeTab={activeTab} onAdd={() => addCollectionItem("projects", makeEmptyProject(), "Project added", "start")}>
+            {(() => {
+              const projects = draftContent.projects ?? [];
+              const activeIndex = Math.min(activeItemTabs.projects ?? 0, Math.max(projects.length - 1, 0));
+              const project = projects[activeIndex];
+
+              return (
+                <>
+                  <SortableItemTabs
+                    collection="Projects"
+                    items={projects}
+                    activeIndex={activeIndex}
+                    onActiveIndexChange={(index) => setActiveItemTab("projects", index)}
+                    onReorder={(fromIndex, toIndex) => reorderCollectionItems("projects", fromIndex, toIndex, "Projects reordered")}
+                    getLabel={(entry, index) => entry.title || `Project ${index + 1}`}
+                    emptyLabel="No projects yet."
+                  />
+                  {project ? (
+                    <div className="cms-list">
+                      <div className="cms-list-row" key={`project-editor-${activeIndex}`}>
+                        <div className="cms-row-header">
+                          <strong>{project.title || `Project ${activeIndex + 1}`}</strong>
+                          <button type="button" onClick={() => removeCollectionItem("projects", activeIndex, "Project removed")} aria-label={`Remove ${project.title}`}>
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                        <div className="cms-field-grid">
+                          <Field label="Title" value={project.title} onChange={(value) => updateRecord("projects", activeIndex, "title", value, "Project updated")} />
+                          <Field label="Category" value={project.category} onChange={(value) => updateRecord("projects", activeIndex, "category", value, "Project updated")} />
+                          <Field label="URL" value={project.url} onChange={(value) => updateRecord("projects", activeIndex, "url", value, "Project updated")} />
+                          <Field label="URL label" value={project.linkLabel ?? "Project link"} onChange={(value) => updateRecord("projects", activeIndex, "linkLabel", value, "Project updated")} />
+                        </div>
+                        <Field label="Description" value={project.description} textarea onChange={(value) => updateRecord("projects", activeIndex, "description", value, "Project updated")} />
+                        <TextListEditor label="Bullets" items={project.bullets} onChange={(value) => updateRecordList("projects", activeIndex, "bullets", value, "Project bullets updated")} addLabel="Add bullet" />
+                        <TextListEditor label="Technologies" items={project.technologies} onChange={(value) => updateRecordList("projects", activeIndex, "technologies", value, "Project technologies updated")} addLabel="Add technology" />
+                        <LinkListEditor label="Links" links={project.links} onChange={(value) => updateRecordList("projects", activeIndex, "links", value, "Project links updated")} />
+                        <AssetField label="Project image URL (online image URL allowed)" value={project.image} onChange={(value) => updateRecord("projects", activeIndex, "image", value, "Project image updated")} onStatus={setStatus} />
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              );
+            })()}
           </SectionCard>
 
           <SectionCard title="Social Links" tabId="social-links" activeTab={activeTab}>

@@ -24,7 +24,7 @@ Open the local URL shown by Vite. The content manager is available at:
 http://localhost:5173/#/admin
 ```
 
-The content manager is enabled automatically during local development. Production builds hide the public admin route by default so visitors cannot open editing tools on GitHub Pages.
+The content manager is available in local development and production at `/#/admin`.
 
 Production build:
 
@@ -40,7 +40,7 @@ The site is static, so the CMS does not require a backend, server, or extra data
 - Main database file: `public/content/portfolio-content.json`
 - Preview drafts: in-memory only; browser reload resets everything to the JSON database
 - Fallback source: `src/data/portfolio.js`
-- CMS route: `/#/admin` in local development
+- CMS route: `/#/admin`
 
 How to make permanent content changes:
 
@@ -56,13 +56,13 @@ Media fields accept local project paths, online URLs, or uploaded draft files. U
 
 For safety, the CMS blocks unsafe URL schemes before save, copy, export, and render. Use `https://`, `http://`, `mailto:`, `tel:`, hash links, or repo-relative paths such as `/images/portfolio/demo.jpg`. Draft uploads are limited to raster images under 3 MB and resume files under 8 MB.
 
-If you intentionally want the CMS visible in a production demo, build with:
+If you intentionally want to hide the CMS and database icon in production, build with:
 
 ```bash
-VITE_ENABLE_PUBLIC_CMS=true npm run build
+VITE_ENABLE_PUBLIC_CMS=false npm run build
 ```
 
-Keep it disabled for a public personal site unless you specifically want visitors to inspect the editor.
+The CMS is still static and preview-only; visitors cannot permanently write to your repository from GitHub Pages.
 
 To regenerate the starter JSON from `src/data/portfolio.js`:
 

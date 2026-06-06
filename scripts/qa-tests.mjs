@@ -10,6 +10,7 @@ import {
   validateUploadFile,
 } from "../src/utils/contentSecurity.js";
 import { normalizePortfolioContent, preparePortfolioContent } from "../src/utils/portfolioContent.js";
+import { reorderItems } from "../src/utils/reorder.js";
 
 function fileStub(overrides) {
   return {
@@ -23,11 +24,12 @@ function fileStub(overrides) {
 const testCases = [
   {
     id: "CMS-001",
-    name: "CMS access is local-only unless explicitly enabled",
+    name: "CMS access is visible by default and can be explicitly disabled",
     run() {
       assert.equal(isCmsEnabled({ DEV: true }), true);
-      assert.equal(isCmsEnabled({ DEV: false }), false);
+      assert.equal(isCmsEnabled({ DEV: false }), true);
       assert.equal(isCmsEnabled({ DEV: false, VITE_ENABLE_PUBLIC_CMS: "true" }), true);
+      assert.equal(isCmsEnabled({ DEV: false, VITE_ENABLE_PUBLIC_CMS: "false" }), false);
     },
   },
   {
@@ -144,6 +146,14 @@ const testCases = [
       assert.equal(prepared.profile.resume, "https://cdn.example.com/resume.pdf");
       assert.equal(prepared.projects[0].url, "https://example.com/project");
       assert.equal(prepared.projects[0].image, "https://cdn.example.com/project.jpg");
+    },
+  },
+  {
+    id: "CMS-004",
+    name: "Collection tab reordering moves items to the requested position",
+    run() {
+      const reordered = reorderItems(["Full Stack Developer", "Software Engineer", "Lecturer", "Junior Software Engineer"], 3, 2);
+      assert.deepEqual(reordered, ["Full Stack Developer", "Software Engineer", "Junior Software Engineer", "Lecturer"]);
     },
   },
 ];
