@@ -21,6 +21,22 @@ const profileFields = [
 const treeColorPalette = ["#f4d35e", "#7bd389", "#70d6ff", "#ff9f6e", "#c7f9cc", "#f497b6", "#b8f2e6", "#a0c4ff", "#95d5b2", "#ffcad4"];
 const toHexColor = (value) => (/^#[0-9a-f]{6}$/i.test(value ?? "") ? value : "#f4d35e");
 
+const editorTabs = [
+  { id: "section-titles", label: "Section Titles" },
+  { id: "profile", label: "Profile" },
+  { id: "tree-navigation", label: "Tree Navigation" },
+  { id: "myself-metrics", label: "Myself Metrics" },
+  { id: "objective", label: "Objective" },
+  { id: "who-am-i", label: "Who Am I" },
+  { id: "experience", label: "Experience" },
+  { id: "education", label: "Education" },
+  { id: "skills", label: "Skills" },
+  { id: "research", label: "Research" },
+  { id: "projects", label: "Projects" },
+  { id: "social-links", label: "Social Links" },
+  { id: "full-json", label: "Full JSON" },
+];
+
 function makeEmptyLink() {
   return { label: "New Link", url: "" };
 }
@@ -203,6 +219,7 @@ function AssetField({ label, value, onChange, onStatus, kind = "image" }) {
 
 function TextListEditor({ label, items = [], onChange, addLabel = "Add item" }) {
   const list = Array.isArray(items) ? items : [];
+  const compact = label === "Skills" || label === "Technologies";
 
   return (
     <div className="cms-nested-editor">
@@ -213,9 +230,9 @@ function TextListEditor({ label, items = [], onChange, addLabel = "Add item" }) 
           <span>{addLabel}</span>
         </button>
       </div>
-      <div className="cms-nested-list">
+      <div className={`cms-nested-list ${compact ? "is-compact" : ""}`}>
         {list.map((item, index) => (
-          <div className="cms-inline-row" key={`${label}-${index}`}>
+          <div className={`cms-inline-row ${compact ? "is-compact" : ""}`} key={`${label}-${index}`}>
             <input value={item ?? ""} onChange={(event) => onChange(list.map((current, itemIndex) => (itemIndex === index ? event.target.value : current)))} aria-label={`${label} ${index + 1}`} />
             <button type="button" onClick={() => onChange(list.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Remove ${label} ${index + 1}`}>
               <Trash2 size={15} />
@@ -254,9 +271,18 @@ function LinkListEditor({ label, links = [], onChange }) {
   );
 }
 
-function SectionCard({ title, onAdd, addLabel = "Add", children }) {
+function SectionCard({ title, onAdd, addLabel = "Add", tabId, activeTab, children }) {
+  const isTabbed = Boolean(tabId);
+  const isActive = !isTabbed || activeTab === tabId;
+
   return (
-    <article className="cms-card cms-reveal">
+    <article
+      className={`cms-card cms-reveal ${isTabbed ? "cms-tab-panel" : ""} ${isActive ? "is-active" : ""}`}
+      hidden={!isActive}
+      id={isTabbed ? `cms-panel-${tabId}` : undefined}
+      role={isTabbed ? "tabpanel" : undefined}
+      aria-labelledby={isTabbed ? `cms-tab-${tabId}` : undefined}
+    >
       <header>
         <h2>{title}</h2>
         {onAdd ? (
@@ -275,6 +301,7 @@ export default function ContentManager() {
   const { content, databasePath, draftSavedAt, hasPreviewDraft, resetContent, source, updateContent } = usePortfolioContent();
   const [draftContent, setDraftContent] = useState(() => normalizePortfolioContent(content));
   const [jsonDraft, setJsonDraft] = useState(() => stringify(normalizePortfolioContent(content)));
+  const [activeTab, setActiveTab] = useState(editorTabs[0].id);
   const [dirty, setDirty] = useState(false);
   const [status, setStatus] = useState({ type: "info", text: "Ready" });
   const fileInputRef = useRef(null);
@@ -309,6 +336,18 @@ export default function ContentManager() {
 
     return () => ctx.revert();
   }, []);
+
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".cms-tab-panel.is-active",
+        { autoAlpha: 0, y: 14 },
+        { autoAlpha: 1, y: 0, duration: 0.36, ease: "power2.out" },
+      );
+    }, shellRef);
+
+    return () => ctx.revert();
+  }, [activeTab]);
 
   const setDraft = (nextContent, message = "Draft updated") => {
     const normalized = normalizePortfolioContent(nextContent);
@@ -517,7 +556,25 @@ export default function ContentManager() {
         </aside>
 
         <section className="cms-editor-stack">
-          <SectionCard title="Section Titles">
+          <nav className="cms-tabs cms-reveal" aria-label="Portfolio database sections" role="tablist">
+            {editorTabs.map((tab, index) => (
+              <button
+                key={tab.id}
+                type="button"
+                id={`cms-tab-${tab.id}`}
+                role="tab"
+                className={activeTab === tab.id ? "is-active" : ""}
+                aria-selected={activeTab === tab.id}
+                aria-controls={`cms-panel-${tab.id}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{tab.label}</strong>
+              </button>
+            ))}
+          </nav>
+
+          <SectionCard title="Section Titles" tabId="section-titles" activeTab={activeTab}>
             <div className="cms-nav-list">
               {draftContent.sectionOrder.map((id) => {
                 const section = draftContent.sections[id] ?? { title: id, eyebrow: "" };
@@ -532,7 +589,7 @@ export default function ContentManager() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Profile">
+          <SectionCard title="Profile" tabId="profile" activeTab={activeTab}>
             <div className="cms-field-grid">
               {profileFields.map(([field, label]) => (
                 <Field key={field} label={label} value={draftContent.profile[field]} onChange={(value) => updateProfile(field, value)} />
@@ -542,7 +599,7 @@ export default function ContentManager() {
             <AssetField label="Resume URL (online resume URL allowed)" value={draftContent.profile.resume} onChange={(value) => updateProfile("resume", value)} onStatus={setStatus} kind="resume" />
           </SectionCard>
 
-          <SectionCard title="Tree Navigation">
+          <SectionCard title="Tree Navigation" tabId="tree-navigation" activeTab={activeTab}>
             <div className="cms-palette-viewer" aria-label="Current tree navigation color palette">
               {draftContent.treeNavItems.map((item) => (
                 <button key={`palette-${item.id}`} type="button" onClick={() => setStatus({ type: "info", text: `${item.label} uses ${item.tint}` })} style={{ "--swatch": item.tint }} aria-label={`${item.label} color ${item.tint}`}>
@@ -572,7 +629,7 @@ export default function ContentManager() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Myself Metrics" onAdd={() => updateTopLevelList("stats", [...(draftContent.stats ?? []), makeEmptyStat()], "Metric added")}>
+          <SectionCard title="Myself Metrics" tabId="myself-metrics" activeTab={activeTab} onAdd={() => updateTopLevelList("stats", [...(draftContent.stats ?? []), makeEmptyStat()], "Metric added")}>
             <div className="cms-list">
               {(draftContent.stats ?? []).map((stat, index) => (
                 <div className="cms-list-row" key={`${stat.label}-${index}`}>
@@ -591,21 +648,21 @@ export default function ContentManager() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Objective">
+          <SectionCard title="Objective" tabId="objective" activeTab={activeTab}>
             <div className="cms-field-grid is-single">
               <Field label="Headline" value={draftContent.objective.headline} onChange={(value) => updateTopLevelRecord("objective", "headline", value, "Objective updated")} textarea />
             </div>
             <TextListEditor label="Paragraphs" items={draftContent.objective.body} onChange={(value) => updateTopLevelRecord("objective", "body", value, "Objective paragraphs updated")} addLabel="Add paragraph" />
           </SectionCard>
 
-          <SectionCard title="Who Am I">
+          <SectionCard title="Who Am I" tabId="who-am-i" activeTab={activeTab}>
             <div className="cms-field-grid is-single">
               <Field label="Headline" value={draftContent.whoAmI.headline} onChange={(value) => updateTopLevelRecord("whoAmI", "headline", value, "Who Am I updated")} textarea />
             </div>
             <TextListEditor label="Paragraphs" items={draftContent.whoAmI.paragraphs} onChange={(value) => updateTopLevelRecord("whoAmI", "paragraphs", value, "Who Am I paragraphs updated")} addLabel="Add paragraph" />
           </SectionCard>
 
-          <SectionCard title="Experience" onAdd={() => updateTopLevelList("experiences", [...(draftContent.experiences ?? []), makeEmptyExperience()], "Experience added")}>
+          <SectionCard title="Experience" tabId="experience" activeTab={activeTab} onAdd={() => updateTopLevelList("experiences", [...(draftContent.experiences ?? []), makeEmptyExperience()], "Experience added")}>
             <div className="cms-list">
               {(draftContent.experiences ?? []).map((job, index) => (
                 <div className="cms-list-row" key={`${job.role}-${index}`}>
@@ -631,7 +688,7 @@ export default function ContentManager() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Education" onAdd={() => updateTopLevelList("education", [...(draftContent.education ?? []), makeEmptyEducation()], "Education added")}>
+          <SectionCard title="Education" tabId="education" activeTab={activeTab} onAdd={() => updateTopLevelList("education", [...(draftContent.education ?? []), makeEmptyEducation()], "Education added")}>
             <div className="cms-list">
               {(draftContent.education ?? []).map((item, index) => (
                 <div className="cms-list-row" key={`${item.degree}-${index}`}>
@@ -652,7 +709,7 @@ export default function ContentManager() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Skills" onAdd={() => updateTopLevelList("skillGroups", [...(draftContent.skillGroups ?? []), makeEmptySkillGroup()], "Skill group added")}>
+          <SectionCard title="Skills" tabId="skills" activeTab={activeTab} onAdd={() => updateTopLevelList("skillGroups", [...(draftContent.skillGroups ?? []), makeEmptySkillGroup()], "Skill group added")}>
             <div className="cms-list">
               {(draftContent.skillGroups ?? []).map((group, index) => (
                 <div className="cms-list-row" key={`${group.title}-${index}`}>
@@ -673,7 +730,7 @@ export default function ContentManager() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Research" onAdd={() => updateTopLevelList("research", [...(draftContent.research ?? []), makeEmptyResearch()], "Research added")}>
+          <SectionCard title="Research" tabId="research" activeTab={activeTab} onAdd={() => updateTopLevelList("research", [...(draftContent.research ?? []), makeEmptyResearch()], "Research added")}>
             <div className="cms-list">
               {(draftContent.research ?? []).map((item, index) => (
                 <div className="cms-list-row" key={`${item.title}-${index}`}>
@@ -696,7 +753,7 @@ export default function ContentManager() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Projects" onAdd={() => updateTopLevelList("projects", [makeEmptyProject(), ...(draftContent.projects ?? [])], "Project added")}>
+          <SectionCard title="Projects" tabId="projects" activeTab={activeTab} onAdd={() => updateTopLevelList("projects", [makeEmptyProject(), ...(draftContent.projects ?? [])], "Project added")}>
             <div className="cms-list">
               {(draftContent.projects ?? []).map((project, index) => (
                 <div className="cms-list-row" key={`${project.title}-${index}`}>
@@ -722,11 +779,11 @@ export default function ContentManager() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Social Links">
+          <SectionCard title="Social Links" tabId="social-links" activeTab={activeTab}>
             <LinkListEditor label="Social links" links={draftContent.socialLinks} onChange={(value) => updateTopLevelList("socialLinks", value, "Social links updated")} />
           </SectionCard>
 
-          <SectionCard title="Full JSON">
+          <SectionCard title="Full JSON" tabId="full-json" activeTab={activeTab}>
             <textarea
               className="cms-json"
               value={jsonDraft}
