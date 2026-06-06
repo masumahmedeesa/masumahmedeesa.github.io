@@ -1,7 +1,7 @@
 # Living Tree Portfolio
 
 <p align="center">
-  <img src="public/demo/portfolio-database-demo.gif" alt="Interactive 3D tree portfolio CMS demo" width="960" />
+  <img src="public/demo/portfolio-database-demo-2.gif" alt="Interactive 3D tree portfolio CMS demo" width="960" />
 </p>
 
 <p align="center">
