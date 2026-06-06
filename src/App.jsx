@@ -1,15 +1,11 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { ArrowDownToLine, Database, Github, Linkedin, Mail, Menu, X } from "lucide-react";
-import ContentManager from "./components/ContentManager.jsx";
-import ContentPanel from "./components/ContentPanel.jsx";
 import { usePortfolioContent } from "./data/PortfolioContentContext.jsx";
 import { isCmsEnabled } from "./utils/cmsAccess.js";
 import { mailtoHref, safeHref, safeResumeHref } from "./utils/assets.js";
 
-gsap.registerPlugin(ScrollTrigger);
-
+const ContentManager = lazy(() => import("./components/ContentManager.jsx"));
+const ContentPanel = lazy(() => import("./components/ContentPanel.jsx"));
 const TreeExperience = lazy(() => import("./components/TreeExperience.jsx"));
 
 function useHashRoute() {
@@ -48,18 +44,6 @@ export default function App() {
     if (!sections[activeId] && firstSectionId) setActiveId(firstSectionId);
   }, [activeId, firstSectionId, sections]);
 
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".chrome-reveal",
-        { y: -14 },
-        { y: 0, duration: 0.85, ease: "power3.out", stagger: 0.08 },
-      );
-    });
-
-    return () => ctx.revert();
-  }, []);
-
   const handleSelect = (id) => {
     setHasInteracted(true);
     setActiveId(id);
@@ -67,7 +51,11 @@ export default function App() {
   };
 
   if (route === "#/admin" && cmsEnabled) {
-    return <ContentManager />;
+    return (
+      <Suspense fallback={<div className="tree-loading">Loading content studio...</div>}>
+        <ContentManager />
+      </Suspense>
+    );
   }
 
   return (
@@ -123,7 +111,9 @@ export default function App() {
         </a>
       </aside>
 
-      <ContentPanel section={activeSection} activeId={activeId} onSelect={handleSelect} content={content} />
+      <Suspense fallback={<div className="content-panel panel-loading">Loading profile...</div>}>
+        <ContentPanel section={activeSection} activeId={activeId} onSelect={handleSelect} content={content} />
+      </Suspense>
 
       <div className="ambient-copy chrome-reveal" aria-hidden="true">
         <span>{profile.journeyLabel ?? "Professional Journey"}</span>
