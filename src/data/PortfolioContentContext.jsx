@@ -1,59 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { portfolioContent as fallbackContent } from "./portfolio.js";
+import { normalizePortfolioContent } from "../utils/portfolioContent.js";
+
+export { normalizePortfolioContent };
 
 export const CONTENT_DATABASE_PATH = "content/portfolio-content.json";
 
 const PortfolioContentContext = createContext(null);
-
-function isRecord(value) {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function deepClone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
-
-function mergeContent(base, override) {
-  if (Array.isArray(base)) return Array.isArray(override) ? override : base;
-  if (!isRecord(base)) return override ?? base;
-
-  const merged = { ...base };
-  if (!isRecord(override)) return merged;
-
-  Object.entries(override).forEach(([key, value]) => {
-    merged[key] = key in base ? mergeContent(base[key], value) : value;
-  });
-
-  return merged;
-}
-
-export function normalizePortfolioContent(content) {
-  const merged = mergeContent(deepClone(fallbackContent), content ?? {});
-  const sections = isRecord(merged.sections) ? merged.sections : fallbackContent.sections;
-
-  const sectionOrder = Array.isArray(merged.sectionOrder)
-    ? merged.sectionOrder.filter((id) => typeof id === "string" && sections[id])
-    : fallbackContent.sectionOrder;
-
-  const treeNavItems = Array.isArray(merged.treeNavItems)
-    ? merged.treeNavItems.filter((item) => item?.id && Array.isArray(item.position) && item.position.length >= 3)
-    : fallbackContent.treeNavItems;
-
-  const projects = Array.isArray(merged.projects)
-    ? merged.projects.map((project) => {
-        const { gallery, ...projectWithoutGallery } = isRecord(project) ? project : {};
-        return { linkLabel: "Project link", ...projectWithoutGallery };
-      })
-    : fallbackContent.projects;
-
-  return {
-    ...merged,
-    sections,
-    sectionOrder: sectionOrder.length ? sectionOrder : fallbackContent.sectionOrder,
-    treeNavItems: treeNavItems.length ? treeNavItems : fallbackContent.treeNavItems,
-    projects,
-  };
-}
 
 export function PortfolioContentProvider({ children }) {
   const [databaseContent, setDatabaseContent] = useState(() => normalizePortfolioContent(fallbackContent));

@@ -5,7 +5,8 @@ import { ArrowDownToLine, Database, Github, Linkedin, Mail, Menu, X } from "luci
 import ContentManager from "./components/ContentManager.jsx";
 import ContentPanel from "./components/ContentPanel.jsx";
 import { usePortfolioContent } from "./data/PortfolioContentContext.jsx";
-import { assetUrl } from "./utils/assets.js";
+import { isCmsEnabled } from "./utils/cmsAccess.js";
+import { mailtoHref, safeHref, safeResumeHref } from "./utils/assets.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -32,6 +33,7 @@ export default function App() {
   const [navOpen, setNavOpen] = useState(false);
   const firstSectionId = sectionOrder[0] ?? Object.keys(sections)[0] ?? "name";
   const activeSection = sections[activeId] ?? sections[firstSectionId];
+  const cmsEnabled = isCmsEnabled();
 
   const socialIconMap = useMemo(
     () => ({
@@ -50,8 +52,8 @@ export default function App() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ".chrome-reveal",
-        { autoAlpha: 0, y: -14 },
-        { autoAlpha: 1, y: 0, duration: 0.85, ease: "power3.out", stagger: 0.08 },
+        { y: -14 },
+        { y: 0, duration: 0.85, ease: "power3.out", stagger: 0.08 },
       );
     });
 
@@ -64,7 +66,7 @@ export default function App() {
     setNavOpen(false);
   };
 
-  if (route === "#/admin") {
+  if (route === "#/admin" && cmsEnabled) {
     return <ContentManager />;
   }
 
@@ -93,9 +95,11 @@ export default function App() {
         </nav>
 
         <div className="top-actions">
-          <a className="icon-button admin-entry" href="#/admin" aria-label="Open content manager">
-            <Database size={18} />
-          </a>
+          {cmsEnabled ? (
+            <a className="icon-button admin-entry" href="#/admin" aria-label="Open content manager">
+              <Database size={18} />
+            </a>
+          ) : null}
           <button className="icon-button mobile-menu" type="button" onClick={() => setNavOpen((value) => !value)} aria-label="Toggle navigation">
             {navOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -103,18 +107,18 @@ export default function App() {
       </header>
 
       <aside className="status-rail chrome-reveal" aria-label="Portfolio links">
-        <a className="icon-button" href={`mailto:${profile.email}`} aria-label={`Email ${profile.name}`}>
+        <a className="icon-button" href={mailtoHref(profile.email)} aria-label={`Email ${profile.name}`}>
           <Mail size={18} />
         </a>
         {socialLinks.map((link) => {
           const Icon = socialIconMap[link.label];
           return (
-            <a key={link.label} className="icon-button" href={link.url} target="_blank" rel="noreferrer" aria-label={link.label}>
+            <a key={link.label} className="icon-button" href={safeHref(link.url)} target="_blank" rel="noreferrer" aria-label={link.label}>
               {Icon ? <Icon size={18} /> : <span className="social-initial">{link.label.slice(0, 1)}</span>}
             </a>
           );
         })}
-        <a className="icon-button" href={assetUrl(profile.resume)} target="_blank" rel="noreferrer" aria-label="Download resume">
+        <a className="icon-button" href={safeResumeHref(profile.resume)} target="_blank" rel="noreferrer" aria-label="Download resume">
           <ArrowDownToLine size={18} />
         </a>
       </aside>

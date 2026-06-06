@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowDownToLine, ExternalLink, Github, Linkedin, Mail, MapPin, Phone } from "lucide-react";
-import { assetUrl } from "../utils/assets.js";
+import { mailtoHref, safeHref, safeImageSrc, safeResumeHref, telHref } from "../utils/assets.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,7 +12,7 @@ function LinkList({ links = [] }) {
   return (
     <div className="link-list">
       {links.map((link) => (
-        <a key={`${link.label}-${link.url}`} href={assetUrl(link.url)} target="_blank" rel="noreferrer">
+        <a key={`${link.label}-${link.url}`} href={safeHref(link.url)} target="_blank" rel="noreferrer">
           <span>{link.label}</span>
           <ExternalLink size={14} />
         </a>
@@ -35,11 +35,12 @@ function TechChips({ items = [] }) {
 
 function NameSection({ content }) {
   const { profile, stats } = content;
+  const portraitSrc = safeImageSrc(profile.portrait);
 
   return (
     <div className="name-grid" data-reveal>
       <div className="portrait-wrap">
-        <img src={assetUrl(profile.portrait)} alt={profile.name} />
+        {portraitSrc ? <img src={portraitSrc} alt={profile.name} referrerPolicy="no-referrer" /> : null}
       </div>
       <div>
         <p className="panel-kicker">{profile.handle}</p>
@@ -169,7 +170,7 @@ function ResearchSection({ content }) {
     <div className="project-list">
       {(research ?? []).map((item) => (
         <article className="project-row" key={item.title} data-reveal>
-          {item.image ? <img src={assetUrl(item.image)} alt="" /> : <div className="paper-mark">MT</div>}
+          {safeImageSrc(item.image) ? <img src={safeImageSrc(item.image)} alt="" referrerPolicy="no-referrer" /> : <div className="paper-mark">MT</div>}
           <div>
             <span>{item.period}</span>
             <h3>{item.title}</h3>
@@ -193,8 +194,8 @@ function ShowcaseSection({ content }) {
 
         return (
           <article className="showcase-card" key={project.title} data-reveal>
-            <a href={assetUrl(project.url || project.image || "#")} target="_blank" rel="noreferrer" className="showcase-media">
-              {project.image ? <img src={assetUrl(project.image)} alt={`${project.title} visual showcase`} loading="lazy" /> : <div className="paper-mark">PR</div>}
+            <a href={safeHref(project.url || "#")} target="_blank" rel="noreferrer" className="showcase-media">
+              {safeImageSrc(project.image) ? <img src={safeImageSrc(project.image)} alt={`${project.title} visual showcase`} loading="lazy" referrerPolicy="no-referrer" /> : <div className="paper-mark">PR</div>}
             </a>
             <div className="showcase-copy">
               <span>{project.category}</span>
@@ -228,7 +229,7 @@ function FollowSection({ content }) {
       {(socialLinks ?? []).map((link) => {
         const Icon = iconMap[link.label] ?? ExternalLink;
         return (
-          <a key={link.label} href={link.url} target="_blank" rel="noreferrer" data-reveal>
+          <a key={link.label} href={safeHref(link.url)} target="_blank" rel="noreferrer" data-reveal>
             <Icon size={22} />
             <span>{link.label}</span>
             <ExternalLink size={14} />
@@ -241,15 +242,14 @@ function FollowSection({ content }) {
 
 function ContactSection({ content }) {
   const { profile } = content;
-  const phoneHref = profile.phone ? profile.phone.replace(/[^\d+]/g, "") : "";
 
   return (
     <div className="contact-grid">
-      <a href={`mailto:${profile.email}`} data-reveal>
+      <a href={mailtoHref(profile.email)} data-reveal>
         <Mail size={18} />
         <span>{profile.email}</span>
       </a>
-      <a href={`tel:${phoneHref}`} data-reveal>
+      <a href={telHref(profile.phone)} data-reveal>
         <Phone size={18} />
         <span>{profile.phone}</span>
       </a>
@@ -257,7 +257,7 @@ function ContactSection({ content }) {
         <MapPin size={18} />
         <span>{profile.location}</span>
       </div>
-      <a href={assetUrl(profile.resume)} target="_blank" rel="noreferrer" data-reveal>
+      <a href={safeResumeHref(profile.resume)} target="_blank" rel="noreferrer" data-reveal>
         <ArrowDownToLine size={18} />
         <span>{profile.resumeLabel ?? "Download Resume"}</span>
       </a>
@@ -305,21 +305,21 @@ export default function ContentPanel({ section, activeId, onSelect, content }) {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         panelRef.current,
-        { autoAlpha: 0, y: 28, scale: 0.985 },
-        { autoAlpha: 1, y: 0, scale: 1, duration: 0.72, ease: "power3.out" },
+        { y: 28, scale: 0.985 },
+        { y: 0, scale: 1, duration: 0.72, ease: "power3.out" },
       );
 
       gsap.fromTo(
         "[data-reveal]",
-        { autoAlpha: 0, y: 18 },
-        { autoAlpha: 1, y: 0, duration: 0.68, ease: "power2.out", stagger: 0.055, delay: 0.12 },
+        { y: 18 },
+        { y: 0, duration: 0.68, ease: "power2.out", stagger: 0.055, delay: 0.12 },
       );
 
       const revealTargets = gsap.utils.toArray("[data-reveal]");
       ScrollTrigger.batch(revealTargets, {
         scroller: bodyRef.current,
         start: "top 92%",
-        onEnter: (batch) => gsap.to(batch, { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.04, overwrite: true }),
+        onEnter: (batch) => gsap.to(batch, { y: 0, duration: 0.45, stagger: 0.04, overwrite: true }),
       });
     }, panelRef);
 

@@ -24,6 +24,8 @@ Open the local URL shown by Vite. The content manager is available at:
 http://localhost:5173/#/admin
 ```
 
+The content manager is enabled automatically during local development. Production builds hide the public admin route by default so visitors cannot open editing tools on GitHub Pages.
+
 Production build:
 
 ```bash
@@ -38,7 +40,7 @@ The site is static, so the CMS does not require a backend, server, or extra data
 - Main database file: `public/content/portfolio-content.json`
 - Preview drafts: in-memory only; browser reload resets everything to the JSON database
 - Fallback source: `src/data/portfolio.js`
-- CMS route: `/#/admin`
+- CMS route: `/#/admin` in local development
 
 How to make permanent content changes:
 
@@ -51,6 +53,16 @@ How to make permanent content changes:
 7. Commit and push the change.
 
 Media fields accept local project paths, online URLs, or uploaded draft files. Uploaded photos and resumes are preview-only and reset on reload; for permanent use, add real assets to the repo or keep a permanent online URL in the exported JSON.
+
+For safety, the CMS blocks unsafe URL schemes before save, copy, export, and render. Use `https://`, `http://`, `mailto:`, `tel:`, hash links, or repo-relative paths such as `/images/portfolio/demo.jpg`. Draft uploads are limited to raster images under 3 MB and resume files under 8 MB.
+
+If you intentionally want the CMS visible in a production demo, build with:
+
+```bash
+VITE_ENABLE_PUBLIC_CMS=true npm run build
+```
+
+Keep it disabled for a public personal site unless you specifically want visitors to inspect the editor.
 
 To regenerate the starter JSON from `src/data/portfolio.js`:
 
@@ -118,6 +130,45 @@ For a project page such as `https://username.github.io/my-portfolio/`:
 3. Set its value to `/my-portfolio/`.
 4. Push or re-run the deploy workflow.
 
+## Testing
+
+Run the automated QA suite:
+
+```bash
+npm run test:qa
+```
+
+Run the full pre-publish check:
+
+```bash
+npm test
+```
+
+`npm test` runs the security/content test cases and then builds the production bundle. The current automated coverage checks:
+
+- CMS route exposure rules
+- Full JSON draft save behavior
+- URL sanitization for links, images, resumes, projects, research, and social links
+- Draft upload validation for image/resume MIME types, extensions, and file sizes
+- Data URL detection before copy/export
+- Content normalization, including removing unused project gallery fields
+- Production build integrity
+
+Manual browser QA checklist:
+
+1. Start the site with `npm run dev`.
+2. Open the portfolio and click every tree leaf: Myself, Objective, Who Am I, Experience, Education, Skills, Research, Projects, Follow Me, and Contact.
+3. Confirm the tree camera animates, the selected leaf responds, and the content panel updates.
+4. Open `/#/admin`.
+5. Edit one field in every CMS tab, then click `Save Draft`.
+6. Return to the portfolio and confirm every draft change is visible.
+7. Test online media URLs for portrait, research image, project image, and resume.
+8. Test draft uploads manually: upload a small PNG/JPG/WebP portrait, upload a PDF resume, save draft, and confirm previews update.
+9. Click `Copy JSON` and `Export JSON`; if draft uploads are present, confirm you understand the base64 data URL warning.
+10. Reload the browser and confirm draft changes reset to `public/content/portfolio-content.json`.
+11. Test responsive layouts at mobile, tablet, and desktop widths.
+12. Run `npm test` again before committing or deploying.
+
 ## File Structure
 
 ```text
@@ -138,6 +189,7 @@ src/
   styles.css
 scripts/
   export-content.mjs
+  qa-tests.mjs
 .github/workflows/deploy.yml
 ```
 

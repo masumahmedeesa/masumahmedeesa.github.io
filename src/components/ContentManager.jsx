@@ -2,6 +2,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { AlertTriangle, ArrowLeft, CheckCircle2, Copy, Database, Download, FileJson, Plus, RotateCcw, Save, Trash2, Upload } from "lucide-react";
 import { normalizePortfolioContent, usePortfolioContent } from "../data/PortfolioContentContext.jsx";
+import { hasDataUrls, validateUploadFile, validateUrl } from "../utils/contentSecurity.js";
+import { safeImageSrc, safeResumeHref } from "../utils/assets.js";
+import { preparePortfolioContent } from "../utils/portfolioContent.js";
 
 const stringify = (value) => JSON.stringify(value, null, 2);
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -106,6 +109,10 @@ function parseDraft(jsonDraft) {
   return normalizePortfolioContent(JSON.parse(jsonDraft));
 }
 
+function prepareDraft(jsonDraft) {
+  return preparePortfolioContent(JSON.parse(jsonDraft));
+}
+
 function downloadJson(content) {
   const blob = new Blob([`${stringify(content)}\n`], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -153,8 +160,9 @@ function AssetField({ label, value, onChange, onStatus, kind = "image" }) {
     const [file] = event.target.files ?? [];
     if (!file) return;
 
-    if (isImage && !file.type.startsWith("image/")) {
-      onStatus({ type: "error", text: "Please upload an image file." });
+    const validation = validateUploadFile(file, kind);
+    if (!validation.valid) {
+      onStatus({ type: "error", text: validation.message });
       event.target.value = "";
       return;
     }
@@ -172,6 +180,15 @@ function AssetField({ label, value, onChange, onStatus, kind = "image" }) {
     reader.readAsDataURL(file);
   };
 
+  const handleUrlBlur = (event) => {
+    const validation = validateUrl(event.target.value, kind);
+    if (!validation.valid) {
+      onStatus({ type: "error", text: validation.message });
+    }
+  };
+
+  const previewUrl = isImage ? safeImageSrc(value) : safeResumeHref(value);
+
   return (
     <div className="cms-asset-field">
       <div className="cms-asset-row">
@@ -180,7 +197,13 @@ function AssetField({ label, value, onChange, onStatus, kind = "image" }) {
             <>
               <label className="cms-field">
                 <span>{label}</span>
-                <input value={value ?? ""} onChange={(event) => onChange(event.target.value)} placeholder={isImage ? "https://example.com/image.jpg or /images/example.jpg" : "https://example.com/resume.pdf or /resume.pdf"} />
+                <input
+                  key={`${kind}-url`}
+                  value={value ?? ""}
+                  onBlur={handleUrlBlur}
+                  onChange={(event) => onChange(event.target.value)}
+                  placeholder={isImage ? "https://example.com/image.jpg or /images/example.jpg" : "https://example.com/resume.pdf or /resume.pdf"}
+                />
               </label>
               <button type="button" className="cms-switch-button" onClick={() => setMode("upload")}>
                 {uploadLabel}
@@ -190,7 +213,7 @@ function AssetField({ label, value, onChange, onStatus, kind = "image" }) {
             <>
               <label className="cms-field">
                 <span>{isImage ? "Upload photo draft" : "Upload resume draft"} (Draft uploads reset on reload. For permanent use, clone the repo and follow README.md.)</span>
-                <input type="file" accept={acceptedTypes} onChange={handleUpload} />
+                <input key={`${kind}-upload`} type="file" accept={acceptedTypes} onChange={handleUpload} />
               </label>
               <button type="button" className="cms-switch-button" onClick={() => setMode("url")}>
                 {urlLabel}
@@ -199,11 +222,11 @@ function AssetField({ label, value, onChange, onStatus, kind = "image" }) {
           )}
         </div>
         <div className={`cms-asset-preview ${isImage ? "is-image" : "is-file"}`} aria-label={`${label} preview`}>
-          {value ? (
+          {previewUrl ? (
             isImage ? (
-              <img src={value} alt="" />
+              <img src={previewUrl} alt="" referrerPolicy="no-referrer" />
             ) : (
-              <a href={value} target="_blank" rel="noreferrer">
+              <a href={previewUrl} target="_blank" rel="noreferrer">
                 <FileJson size={18} />
                 <span>Open resume</span>
               </a>
@@ -329,8 +352,8 @@ export default function ContentManager() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ".cms-reveal",
-        { autoAlpha: 0, y: 18 },
-        { autoAlpha: 1, y: 0, duration: 0.62, ease: "power3.out", stagger: 0.04 },
+        { y: 18 },
+        { y: 0, duration: 0.62, ease: "power3.out", stagger: 0.04 },
       );
     }, shellRef);
 
@@ -341,8 +364,8 @@ export default function ContentManager() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ".cms-tab-panel.is-active",
-        { autoAlpha: 0, y: 14 },
-        { autoAlpha: 1, y: 0, duration: 0.36, ease: "power2.out" },
+        { y: 14 },
+        { y: 0, duration: 0.36, ease: "power2.out" },
       );
     }, shellRef);
 
@@ -420,7 +443,7 @@ export default function ContentManager() {
 
   const handleSave = () => {
     try {
-      const parsed = parseDraft(jsonDraft);
+      const parsed = prepareDraft(jsonDraft);
       updateContent(parsed);
       setDraftContent(parsed);
       setJsonDraft(stringify(parsed));
@@ -433,8 +456,10 @@ export default function ContentManager() {
 
   const handleExport = () => {
     try {
-      const parsed = parseDraft(jsonDraft);
+      const parsed = prepareDraft(jsonDraft);
+      if (hasDataUrls(parsed) && !window.confirm("This JSON contains uploaded draft files as base64 data URLs. Export only if you are comfortable storing those files in the JSON.")) return;
       downloadJson(parsed);
+      setJsonDraft(stringify(parsed));
       setStatus({ type: "success", text: "Exported portfolio-content.json" });
     } catch (error) {
       setStatus({ type: "error", text: error.message });
@@ -443,7 +468,12 @@ export default function ContentManager() {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(`${jsonDraft}\n`);
+      const parsed = prepareDraft(jsonDraft);
+      if (hasDataUrls(parsed) && !window.confirm("This JSON contains uploaded draft files as base64 data URLs. Copy only if you are comfortable storing those files in the JSON.")) return;
+      const preparedJson = stringify(parsed);
+      await navigator.clipboard.writeText(`${preparedJson}\n`);
+      setDraftContent(parsed);
+      setJsonDraft(preparedJson);
       setStatus({ type: "success", text: "JSON copied" });
     } catch (error) {
       setStatus({ type: "error", text: error.message });
@@ -455,7 +485,7 @@ export default function ContentManager() {
     if (!file) return;
 
     try {
-      const parsed = normalizePortfolioContent(JSON.parse(await file.text()));
+      const parsed = preparePortfolioContent(JSON.parse(await file.text()));
       setDraft(parsed, "Imported JSON draft");
     } catch (error) {
       setStatus({ type: "error", text: error.message });
@@ -468,6 +498,33 @@ export default function ContentManager() {
     resetContent();
     setStatus({ type: "info", text: "Reset to JSON database" });
   };
+
+  const handleJsonDraftChange = (event) => {
+    const nextJson = event.target.value;
+    setJsonDraft(nextJson);
+    setDirty(true);
+
+    try {
+      const parsed = parseDraft(nextJson);
+      setDraftContent(parsed);
+      setStatus({ type: "info", text: "JSON draft is valid. Save Draft to preview." });
+    } catch {
+      setStatus({ type: "info", text: "Editing JSON draft. Fix syntax before saving." });
+    }
+  };
+
+  useEffect(() => {
+    const shouldWarn = dirty || hasPreviewDraft;
+    if (!shouldWarn) return undefined;
+
+    const warnBeforeReload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", warnBeforeReload);
+    return () => window.removeEventListener("beforeunload", warnBeforeReload);
+  }, [dirty, hasPreviewDraft]);
 
   return (
     <main className="cms-shell" ref={shellRef}>
@@ -789,9 +846,7 @@ export default function ContentManager() {
               value={jsonDraft}
               spellCheck="false"
               onChange={(event) => {
-                setJsonDraft(event.target.value);
-                setDirty(true);
-                setStatus({ type: "info", text: "JSON draft updated" });
+                handleJsonDraftChange(event);
               }}
               aria-label="Portfolio content JSON"
             />
