@@ -1,15 +1,60 @@
-# Interactive 3D Tree Portfolio
+# Living Tree Portfolio
 
-A premium React portfolio built around a cinematic Three.js tree. Each interactive leaf opens a professional section such as profile, objective, experience, education, skills, research, projects, social links, and contact details.
+<p align="center">
+  <img src="public/demo/portfolio-database-demo.gif" alt="Interactive 3D tree portfolio CMS demo" width="960" />
+</p>
 
-## Features
+<p align="center">
+  <strong>A cinematic portfolio experience where a professional journey grows as a living 3D tree.</strong>
+</p>
 
-- React, Three.js, React Three Fiber, Drei, GSAP, and Vite
-- Real-time 3D tree navigation with animated leaves and camera focus
-- Static JSON content database for GitHub Pages
-- Built-in browser CMS at `/#/admin`
-- Project cards, skill meters, timelines, contact links, garden scene, particles, sun, grass, and insects
+<p align="center">
+  <a href="https://react.dev/"><img alt="React" src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=111" /></a>
+  <a href="https://threejs.org/"><img alt="Three.js" src="https://img.shields.io/badge/Three.js-3D-black?style=for-the-badge&logo=three.js" /></a>
+  <a href="https://vite.dev/"><img alt="Vite" src="https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=fff" /></a>
+  <a href="https://greensock.com/gsap/"><img alt="GSAP" src="https://img.shields.io/badge/GSAP-Motion-88CE02?style=for-the-badge" /></a>
+  <img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub%20Pages-Ready-222?style=for-the-badge&logo=github" />
+</p>
+
+---
+
+## Overview
+
+This is not a conventional resume page. It is an interactive, garden-like portfolio built with React, Three.js, React Three Fiber, Drei, and GSAP. The main interface is a large 3D tree: each branch and leaf represents a part of the profile, from identity and objective to experience, education, skills, research, projects, social links, and contact.
+
+Visitors explore by clicking leaves. The camera moves, the tree responds, and the selected story opens in a polished content panel. For maintainers, the portfolio also includes a built-in static content studio at `/#/admin`, so content can be edited, previewed, copied, exported, and committed without adding a backend.
+
+> **Design intent:** make a portfolio feel memorable, technical, and personal while staying forkable for open-source users.
+
+## Live Demo
+
+- Portfolio: [https://masumahmedeesha.github.io](https://masumahmedeesha.github.io)
+- Content Studio: [https://masumahmedeesha.github.io/#/admin](https://masumahmedeesha.github.io/#/admin)
+
+The GIF above shows the full draft flow: open the tree, enter the database editor, update a section title, save the preview draft, return to the portfolio, and see the tree/card result update immediately.
+
+## Experience Highlights
+
+- Cinematic 3D tree interface with branch-based navigation
+- Hoverable and clickable leaf controls with animated focus states
+- Camera movement, leaf focus, reveal transitions, and micro-interactions powered by GSAP
+- Garden scene with land, grass, sky, sun, particles, ambient lighting, shadows, and insects
 - Responsive desktop and mobile layouts
+- Content cards for profile, objective, biography, experience, education, skills, research, projects, follow links, and contact
+- Built-in static CMS for editing profile data without installing a database
+- Safe media handling for local assets, online image/resume URLs, and draft uploads
+- GitHub Pages deployment workflow included
+
+## Tech Stack
+
+| Layer | Tools |
+| --- | --- |
+| Interface | React, Vite, Lucide React |
+| 3D Scene | Three.js, React Three Fiber, Drei |
+| Motion | GSAP |
+| Content | Static JSON database, React context |
+| Deployment | GitHub Actions, GitHub Pages |
+| QA | Node-based content/security test suite |
 
 ## Quick Start
 
@@ -18,121 +63,139 @@ npm install
 npm run dev
 ```
 
-Open the local URL shown by Vite. The content manager is available at:
+Open the local Vite URL, usually:
+
+```text
+http://localhost:5173/
+```
+
+Open the content studio:
 
 ```text
 http://localhost:5173/#/admin
 ```
 
-The content manager is available in local development and production at `/#/admin`.
-
-Production build:
+Build and preview production:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Content Management
+## Content Studio
 
-The site is static, so the CMS does not require a backend, server, or extra database package.
+The CMS is intentionally small and static. It does not require MongoDB, Postgres, Firebase, Supabase, or any extra service.
 
-- Main database file: `public/content/portfolio-content.json`
-- Preview drafts: in-memory only; browser reload resets everything to the JSON database
-- Fallback source: `src/data/portfolio.js`
-- CMS route: `/#/admin`
+| Capability | Behavior |
+| --- | --- |
+| Main data file | `public/content/portfolio-content.json` |
+| CMS route | `/#/admin` |
+| Draft lifetime | Preview-only, until browser reload |
+| Permanent changes | Export/copy JSON, replace the repo file, commit |
+| Uploads | Draft-only data URLs unless you commit real assets |
+| URL safety | Blocks unsafe schemes before save, copy, export, or render |
 
-How to make permanent content changes:
+### Permanent Content Workflow
 
-1. Run the site locally with `npm run dev`.
+1. Run the project locally with `npm run dev`.
 2. Open `/#/admin`.
-3. Edit profile, section titles, objective, experience, education, skills, research, projects, social links, media, resume, or the full JSON.
-4. Click `Save Draft` to preview changes before reloading.
-5. Before any reload, click `Export JSON` or `Copy JSON`.
-6. Replace `public/content/portfolio-content.json` with the exported file.
-7. Commit and push the change.
+3. Edit section titles, profile details, experience, education, skills, research, projects, social links, media, resume, or full JSON.
+4. Click `Save Draft` to preview the change in the portfolio.
+5. Before reloading, click `Export JSON` or `Copy JSON`.
+6. Replace `public/content/portfolio-content.json` with the exported content.
+7. Commit and push.
 
-Media fields accept local project paths, online URLs, or uploaded draft files. Uploaded photos and resumes are preview-only and reset on reload; for permanent use, add real assets to the repo or keep a permanent online URL in the exported JSON.
+> **Important:** GitHub Pages is static. The CMS can preview changes in the browser, but it cannot permanently write to your repository. That is a feature, not a bug: the portfolio stays simple, portable, and safe to host.
 
-For safety, the CMS blocks unsafe URL schemes before save, copy, export, and render. Use `https://`, `http://`, `mailto:`, `tel:`, hash links, or repo-relative paths such as `/images/portfolio/demo.jpg`. Draft uploads are limited to raster images under 3 MB and resume files under 8 MB.
+### Media Rules
 
-If you intentionally want to hide the CMS and database icon in production, build with:
+Media fields support:
+
+- Repo-relative assets such as `/images/portfolio/demo.jpg`
+- Online URLs such as `https://example.com/photo.webp`
+- Draft uploads for images and resumes
+
+Draft uploads reset on reload. For permanent media, add the asset to `public/` or use a stable online URL and export the JSON before reloading.
+
+To hide the public CMS/database icon in production:
 
 ```bash
 VITE_ENABLE_PUBLIC_CMS=false npm run build
 ```
 
-The CMS is still static and preview-only; visitors cannot permanently write to your repository from GitHub Pages.
-
-To regenerate the starter JSON from `src/data/portfolio.js`:
-
-```bash
-npm run content:sync
-```
-
-Use this only when you intentionally want the module content to overwrite the JSON starter file.
-
 ## Customize For Your Own Portfolio
 
-1. Fork or clone this repository.
-2. Replace static assets in `public/`:
-   - `public/images/`
-   - `public/resume.pdf`
-   - icons or manifest files if needed
-3. Update content through `/#/admin` or by editing `public/content/portfolio-content.json`.
-4. Keep these section IDs unless you also update the component logic:
-   - `name`
-   - `objective`
-   - `whoami`
-   - `experience`
-   - `education`
-   - `skills`
-   - `research`
-   - `showcase`
-   - `follow`
-   - `contact`
-5. To add another tree item, add it to:
-   - `sectionOrder`
-   - `treeNavItems`
-   - `sections`
-6. Existing section `type` values are rendered by `src/components/ContentPanel.jsx`. New section types need a matching React renderer.
+This project is designed to be forked.
 
-Tree leaf position format:
+1. Clone or fork the repository.
+2. Replace the files in `public/images/` and `public/resume.pdf`.
+3. Edit content through `/#/admin` or directly in `public/content/portfolio-content.json`.
+4. Keep the existing section IDs unless you also update the rendering logic:
+
+```text
+name
+objective
+whoami
+experience
+education
+skills
+research
+showcase
+follow
+contact
+```
+
+5. To add a new tree section, update:
+
+```text
+sectionOrder
+treeNavItems
+sections
+src/components/ContentPanel.jsx
+```
+
+Tree leaf positions use a simple 3D coordinate:
 
 ```json
 {
   "id": "skills",
   "label": "Skills",
-  "position": [1.08, 0.0, -0.55],
+  "position": [1.08, 0, -0.55],
   "tint": "#f497b6"
 }
 ```
 
-Adjust `position[0]` to move left or right, `position[1]` to move up or down, and `position[2]` to move forward or backward in depth.
+Use `position[0]` for left/right, `position[1]` for up/down, and `position[2]` for depth.
 
-## GitHub Pages
+## GitHub Pages Deployment
 
-This repo includes `.github/workflows/deploy.yml`. It builds the Vite app and publishes `dist/` using GitHub Pages Actions.
+The repository includes `.github/workflows/deploy.yml`.
 
-For this repository:
+The workflow currently deploys pushes to:
 
-1. Push the `main` branch to GitHub.
-2. In GitHub, open `Settings` > `Pages`.
+```text
+stable-tree
+main
+```
+
+To publish:
+
+1. Push to one of the deploy branches.
+2. Open GitHub repository `Settings` > `Pages`.
 3. Set `Source` to `GitHub Actions`.
-4. Run the `Deploy to GitHub Pages` workflow or push a new commit.
+4. Run the workflow manually or push a new commit.
 
 For a `username.github.io` repository, keep the base path as `/`.
 
-For a project page such as `https://username.github.io/my-portfolio/`:
+For a project page such as `https://username.github.io/my-portfolio/`, add an Actions repository variable:
 
-1. Open repository `Settings` > `Secrets and variables` > `Actions` > `Variables`.
-2. Add a repository variable named `VITE_BASE_PATH`.
-3. Set its value to `/my-portfolio/`.
-4. Push or re-run the deploy workflow.
+```text
+VITE_BASE_PATH=/my-portfolio/
+```
 
 ## Testing
 
-Run the automated QA suite:
+Run the focused QA suite:
 
 ```bash
 npm run test:qa
@@ -144,36 +207,37 @@ Run the full pre-publish check:
 npm test
 ```
 
-`npm test` runs the security/content test cases and then builds the production bundle. The current automated coverage checks:
+`npm test` runs the CMS/content/security checks and then builds the production bundle.
 
-- CMS route exposure rules
-- Full JSON draft save behavior
-- URL sanitization for links, images, resumes, projects, research, and social links
-- Draft upload validation for image/resume MIME types, extensions, and file sizes
+Current automated coverage includes:
+
+- CMS visibility rules
+- Content normalization
+- Full JSON draft save path
+- URL sanitization
+- Online media URL validation
+- Draft image/resume upload validation
 - Data URL detection before copy/export
-- Content normalization, including removing unused project gallery fields
+- Collection tab reordering
 - Production build integrity
 
-Manual browser QA checklist:
+Recommended manual QA before publishing:
 
-1. Start the site with `npm run dev`.
-2. Open the portfolio and click every tree leaf: Myself, Objective, Who Am I, Experience, Education, Skills, Research, Projects, Follow Me, and Contact.
-3. Confirm the tree camera animates, the selected leaf responds, and the content panel updates.
-4. Open `/#/admin`.
-5. Edit one field in every CMS tab, then click `Save Draft`.
-6. Return to the portfolio and confirm every draft change is visible.
-7. Test online media URLs for portrait, research image, project image, and resume.
-8. Test draft uploads manually: upload a small PNG/JPG/WebP portrait, upload a PDF resume, save draft, and confirm previews update.
-9. Click `Copy JSON` and `Export JSON`; if draft uploads are present, confirm you understand the base64 data URL warning.
-10. Reload the browser and confirm draft changes reset to `public/content/portfolio-content.json`.
-11. Test responsive layouts at mobile, tablet, and desktop widths.
-12. Run `npm test` again before committing or deploying.
+1. Click every tree leaf on desktop and mobile.
+2. Confirm the selected leaf animates and the content panel updates.
+3. Open `/#/admin`.
+4. Edit at least one field, click `Save Draft`, and return to the portfolio.
+5. Confirm the draft result appears without reload.
+6. Test one online image URL and one resume URL.
+7. Test draft upload behavior for a small image and a PDF.
+8. Export or copy JSON, then reload and confirm drafts reset to the JSON database.
 
-## File Structure
+## Project Structure
 
 ```text
 public/
   content/portfolio-content.json
+  demo/portfolio-database-demo.gif
   images/
   resume.pdf
 src/
@@ -185,6 +249,7 @@ src/
   data/
     PortfolioContentContext.jsx
     portfolio.js
+  utils/
   main.jsx
   styles.css
 scripts/
@@ -193,6 +258,15 @@ scripts/
 .github/workflows/deploy.yml
 ```
 
+## Performance Notes
+
+The app keeps the portfolio visually rich while staying practical for static hosting:
+
+- Vite code-splitting separates React, icons, GSAP, and the Three.js scene.
+- The CMS and content panel are lazy-loaded.
+- Heavy 3D chunks are not eagerly preloaded from the initial HTML.
+- Static JSON content keeps deployment simple and cache-friendly.
+
 ## License
 
-MIT. You can reuse, modify, and publish your own version of this portfolio.
+MIT. Fork it, personalize it, and make your own professional story feel alive.
